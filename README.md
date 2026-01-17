@@ -1,0 +1,2 @@
+This is an web aplication used for easy cummunicaton with your ai agents on n8n idk if it works with other then just n8n but it should as long as u got a webhook.
+If your localy hosting n8n use a temporary cloudflare tunnel at least thats what i do cuase even  if my pc and the tunnel shut off its supper easy to recreat the connection the voice feature will vary but for anyone who uses n8n i will link my workflow for you guys.
