@@ -1,2 +1,20 @@
-This is an web aplication used for easy cummunicaton with your ai agents on n8n idk if it works with other then just n8n but it should as long as u got a webhook.
-If your localy hosting n8n use a temporary cloudflare tunnel at least thats what i do cuase even  if my pc and the tunnel shut off its supper easy to recreat the connection the voice feature will vary but for anyone who uses n8n i will link my workflow for you guys.
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
+
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/drive/160gy_IxSpcN99xBY-sigIDB6r58TQTNn
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
