@@ -1,0 +1,7 @@
+{
+  "name": "shwortz",
+  "description": "A sleek, dark-themed interface to communicate with n8n-hosted AI agents via custom webhooks.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
