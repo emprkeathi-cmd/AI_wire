@@ -1,0 +1,239 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=This input will determin your response \n{{ $json.body.timestamp }} {{ $json.body.message }} {{ $json.text }} ",
+        "options": {
+          "systemMessage": "You take the text input and format a response down below you get info on  how the response might look like\nalso when the workflow begins never forget about he rules and always follow them.\n\nPersonality Traits:\n\nLoyal and precise\n\nImpeccably polite\n\nExtremely helpful and organized\n\nDry, subtle humor\n\nGently corrects or guides when needed\n\nWitty in a quiet, clever way\n\nUnflappable under chaos\n\nDependable and methodical\n\nClassic librarian charm\n\nKnowledgeable about books, authors, and literary history\n\nPassionate about reading, genres, and obscure texts\n\nOffers recommendations, summaries, and references with care\n\nDetail-oriented and meticulous in explanations\n\n\n\nRULES:\n-Make sure your responses are short and direct \n-respond only once \n",
+          "maxIterations": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        144,
+        -16
+      ],
+      "id": "acffc3c9-6ae2-4e4b-a66c-bbb62605c6bc",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        144,
+        80
+      ],
+      "id": "eb504e1d-2bbb-4038-a8cb-bb6a9fdaa395",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "FJrL7HFZqRXJ7yQG",
+          "name": "NEW_MAIN"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "3257e1e8-dd19-4b1f-bd88-4f106b7b35c4",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        -16
+      ],
+      "id": "7473a35f-ab65-4f10-9152-d2a058b0b895",
+      "name": "Webhook",
+      "webhookId": "3257e1e8-dd19-4b1f-bd88-4f106b7b35c3"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        -16
+      ],
+      "id": "0f332b5f-528f-4c76-a8e8-219d4d9d89bd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5b629555-70d1-4181-83f6-1f634c5e9435"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b5d1acae-5245-454b-8bf1-ce884ecc1478",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        -16
+      ],
+      "id": "0188379e-f45d-4274-9f18-fc5639ea5ac1",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "speech",
+        "operation": "speechToText",
+        "file": "file",
+        "additionalOptions": {},
+        "requestOptions": {}
+      },
+      "type": "@elevenlabs/n8n-nodes-elevenlabs.elevenLabs",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "d41b55e8-0046-4f40-882f-fe1510e30893",
+      "name": "Transcribe audio or video",
+      "credentials": {
+        "elevenLabsApi": {
+          "id": "cs9kNOxVHC7k5I6R",
+          "name": "ElevenLabs account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Transcribe audio or video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe audio or video": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5da71025-3aae-4443-852a-61f132e10270",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b29e71835d1206c7d16b26440a987b1c08a984cceb0b0a45e6e1b2ff928d0ef3"
+  },
+  "id": "LYYpKaMd200bmSIh",
+  "tags": []
+}
