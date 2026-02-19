@@ -3,13 +3,13 @@
   "name": "AI wire: Neural Interface",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2103/2103830.png",
+      "src": "https://github.com/emprkeathi-cmd/assets_Ai-Wire/blob/main/web-app-manifest-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2103/2103830.png",
+      "src": "https://github.com/emprkeathi-cmd/assets_Ai-Wire/blob/main/web-app-manifest-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
