@@ -1,0 +1,24 @@
+{
+  "short_name": "AI wire",
+  "name": "AI wire: Neural Interface",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#020617",
+  "description": "Sleek neural interface for AI agent communication."
+}
