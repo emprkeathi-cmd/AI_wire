@@ -3,13 +3,13 @@
   "name": "AI wire: Neural Interface",
   "icons": [
     {
-      "src": "https://github.com/emprkeathi-cmd/assets_Ai-Wire/main/web-app-manifest-192x192.png",
+      "src": "https://raw.github.com/emprkeathi-cmd/assets_Ai-Wire/main/web-app-manifest-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "https://github.com/emprkeathi-cmd/assets_Ai-Wire/main/web-app-manifest-512x512.png",
+      "src": "https://raw.github.com/emprkeathi-cmd/assets_Ai-Wire/main/web-app-manifest-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
