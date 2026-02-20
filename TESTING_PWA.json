@@ -1,0 +1,482 @@
+{
+  "name": "TESTING_PWA",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5bb265ed-64c6-4d76-9b4e-c7ed03a3fuck",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -672,
+        -1424
+      ],
+      "id": "0e77fd3c-dcfb-410a-af3f-3f29a06980c7",
+      "name": "Webhook",
+      "webhookId": "5bb265ed-64c6-4d76-9b4e-c7ed03a3e77a"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -448,
+        -1424
+      ],
+      "id": "0068b9b8-59de-4d8e-9cab-c8fee8056c33",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"date\": \"2026-02-27\",\n\"category\": \"Personal Development\",\n\"content\": \"Scause\",\n\"WHAT\": \"create\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        176,
+        -1424
+      ],
+      "id": "d357f237-3be9-472f-a9c6-3d72696d0966",
+      "name": "HTTP Calander Post"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\"date\": \"2026-02-27\",\n\"category\": \"Personal Development\",\n\"content\": \"Scause\",\n\"WHAT\": \"delete\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        -1424
+      ],
+      "id": "c8ee8d01-c156-4f1a-84f5-ba4e42222836",
+      "name": "HTTP Calander delete"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"command\": \"save\",\n  \"category\": \"Important\",\n  \"title\": \"Renew Insurance\",\n  \"reminder\": \"positive\",\n  \"notes\": \"Policy ends on Friday\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -688,
+        -1200
+      ],
+      "id": "765547a9-bdb3-46db-82b2-18aa4f5e1305",
+      "name": "HTTP TODOLIST Create"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"command\": \"delete\",\n  \"category\": \"Important\",\n  \"title\": \"Renew Insurance\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -448,
+        -1200
+      ],
+      "id": "21007de8-68a6-4cac-a81e-e143fdb898b1",
+      "name": "HTTP TODOLIST delete"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\"command\": \"done\",\n\"category\": \"Important\",\n\"title\": \"Renew Insurance\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -240,
+        -1200
+      ],
+      "id": "f6cd81dd-4b44-4055-b168-ee0cede903f0",
+      "name": "HTTP TODOLIST done"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"timer_duration\": 300,\n  \"start_timer\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -624,
+        -720
+      ],
+      "id": "a4531eea-55a1-44d8-9a1f-903279a0cf57",
+      "name": "HTTP TIMER"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"alarm_time\": \"07:30\",\n  \"activate_alarm\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -416,
+        -720
+      ],
+      "id": "1d05d580-2bdb-4db4-af36-a4cb929d6408",
+      "name": "HTTP ALARM"
+    },
+    {
+      "parameters": {
+        "content": "## ALARM/TIMER\n",
+        "height": 208,
+        "width": 496,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -784
+      ],
+      "id": "09f91754-6c70-4376-9293-9e12f72e7f41",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## TODO LIST\n",
+        "height": 192,
+        "width": 656,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -1248
+      ],
+      "id": "88960cf0-2208-4bbc-af12-f702d4cb0b67",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## CALANDER \n",
+        "height": 208,
+        "width": 608,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -1488
+      ],
+      "id": "f58de0ff-9d66-48b6-a2b3-ca592df8b429",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## CHAT TESTS\n",
+        "height": 208,
+        "width": 400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -1488
+      ],
+      "id": "d0e0e483-8017-491f-89b3-a42a837a2f54",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"post\",\n  \"title\": \"NEURAL GRID OPTIMIZATION\",\n  \"text\": \"The central processing nodes have been upgraded to version 4.2. Latency has decreased by 15% across all sectors.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        96,
+        -960
+      ],
+      "id": "d20a8786-8ae7-48da-9442-a1ea61e56245",
+      "name": "HTTP NEWS no question"
+    },
+    {
+      "parameters": {
+        "content": "## NEWS FEED\n",
+        "height": 208,
+        "width": 544,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -1024
+      ],
+      "id": "fc25525a-4676-4888-b3dd-b2416b14fe14",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"post\",\n  \"title\": \"SECURITY PROTOCOL TEST\",\n  \"text\": \"Please verify your knowledge of the current containment procedures for rogue clankers.\",\n  \"questions\": [\n    {\n      \"question\": \"What is the first step in a Level 5 breach?\",\n      \"answers\": [\"Lockdown Sector\", \"Vent Atmosphere\", \"Sound Alarm\"],\n      \"correct_answer\": \"Sound Alarm\"\n    },\n    {\n      \"question\": \"Which frequency is used for emergency override?\",\n      \"answers\": [\"88.4 MHz\", \"shit\", \"Neural-X\"],\n      \"correct_answer\": \"102.1 MHz\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        304,
+        -960
+      ],
+      "id": "c9db870d-25c7-4f9a-88d5-fbae86c2a314",
+      "name": "HTTP NEWS questions"
+    },
+    {
+      "parameters": {
+        "content": "## SOCIAL MEDIA SEND \n",
+        "height": 208,
+        "width": 544,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -1024
+      ],
+      "id": "bd78d04e-f881-47cc-92c6-19c8c47bfd89",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"sync_type\": \"full_recreation_payload\",\n  \"title\": \"Project Alpha\",\n  \"content\": \"+++ Header \\n [[Image|0]] \\n - Metadata\",\n  \"assets\": [\"data:image/png;base64...\"]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        288,
+        -1184
+      ],
+      "id": "7611d6f8-5ed6-4fb1-8b75-c81f62c1ba1f",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "content": "## BLUEPRINT\n",
+        "height": 208,
+        "width": 416
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -1248
+      ],
+      "id": "eeb746c7-7139-4ef9-b0bd-edd8e9468511",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5bb265ed-64c6-4d76-9b4e-c7ed03a3fuck",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        -976
+      ],
+      "id": "5aa5117f-ce66-4276-93cd-63789edf2939",
+      "name": "Webhook1",
+      "webhookId": "5bb265ed-64c6-4d76-9b4e-c7ed03a3e77a"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5bb265ed-64c6-4d76-9b4e-c7ed03a3fuck",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -1184
+      ],
+      "id": "19265f06-8f70-4b0f-84ad-4559b24fd3a1",
+      "name": "Webhook2",
+      "webhookId": "5bb265ed-64c6-4d76-9b4e-c7ed03a3e77a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"type\": \"social_post\",\n  \"title\": \"New Instagram Draft\",\n  \"text\": \"Check out our latest product launch! #innovation #tech\",\n  \"image\": \"https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1000\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -352,
+        -976
+      ],
+      "id": "e6084eba-154d-4d5f-88b0-19e71a03e4ed",
+      "name": "HTTP SOCIALPOST review"
+    },
+    {
+      "parameters": {
+        "content": "## INEED INFO ON HOW JSON SUPPSOED OT LOOK LIKE FOR COPY HTING",
+        "height": 208,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -1248
+      ],
+      "id": "3e67122c-185d-4cb4-8d95-96e575eba0bb",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -560,
+        -976
+      ],
+      "id": "7fdb3d5b-5eff-42ee-8456-b111baac3ba2",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        96,
+        -1184
+      ],
+      "id": "0899e902-8e44-433a-9876-91cf5f0539d8",
+      "name": "Respond to Webhook2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Calander Post": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP TODOLIST done": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "91ed1d7c-d546-4f65-b02a-48a39666cfa6",
+  "meta": {
+    "instanceId": "b29e71835d1206c7d16b26440a987b1c08a984cceb0b0a45e6e1b2ff928d0ef3"
+  },
+  "id": "lwUCAtjs9B0I9zyN",
+  "tags": [
+    {
+      "updatedAt": "2026-02-16T14:38:52.974Z",
+      "createdAt": "2026-02-16T14:38:52.974Z",
+      "id": "kA4WCK2iBGWd9TmV",
+      "name": "TEsts"
+    }
+  ]
+}
