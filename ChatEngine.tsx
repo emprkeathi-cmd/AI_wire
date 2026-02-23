@@ -61,17 +61,16 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
     onCancelRecording, onStopRecording, messagesEndRef, chatFileInputRef
   } = props;
 
-  // NEURAL RENDERER: Hardened to catch n8n's "Signal Acknowledgment" and extract real data
+  // NEURAL RENDERER: Explicitly kills "Signal Acknowledged"
   const renderContent = (content: any) => {
     if (!content) return "";
     
     const parseDeep = (obj: any): string => {
-      // Priority list of keys n8n/AI usually dumps text into
       const val = obj.output || obj.message || obj.response || obj.text || obj.data || (typeof obj === 'string' ? obj : JSON.stringify(obj));
       
-      // If we're still getting the generic 'Signal Acknowledgment', it means n8n hasn't sent real data yet
-      if (val === "Signal Acknowledgment") {
-        return "System: Transmission received, awaiting neural synthesis... (Check n8n Response Node)";
+      // KILL SWITCH: If the string matches the n8n default, return empty
+      if (typeof val === 'string' && (val.includes("Signal Acknowledged") || val.includes("Signal Acknowledgment"))) {
+        return ""; 
       }
       return val;
     };
@@ -81,12 +80,14 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
     if (typeof content === 'string') {
       try {
         if (content.trim().startsWith('{')) {
-          const parsed = JSON.parse(content);
-          return parseDeep(parsed);
+          return parseDeep(JSON.parse(content));
         }
       } catch (e) {
+        // Check string directly if JSON parse fails
+        if (content.includes("Signal Acknowledged") || content.includes("Signal Acknowledgment")) return "";
         return content;
       }
+      if (content.includes("Signal Acknowledged") || content.includes("Signal Acknowledgment")) return "";
       return content;
     }
 
@@ -104,53 +105,60 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
     <div className="flex flex-col h-full selection:bg-indigo-500/30">
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         <div className="space-y-8 max-w-4xl mx-auto w-full pt-4 pb-20">
-          {activeChat.messages.map((msg) => (
-            <div key={msg.id} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {msg.role === 'system' ? (
-                <div className="w-full text-center py-3">
-                  <span className="bg-slate-900 text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] px-4 py-1.5 rounded-full border border-slate-800">
-                    {renderContent(msg.content)}
-                  </span>
-                </div>
-              ) : (
-                <div className={`
-                  max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all 
-                  ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}
-                  select-text cursor-text
-                `}>
-                  {msg.type === 'file' && (
-                    <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10 select-none">
-                      <FileIcon size={18} className="text-white/60" />
-                      <span className="text-xs font-bold truncate">{renderContent(msg.content)}</span>
-                    </div>
-                  )}
-                  {msg.type === 'audio' && (
-                    <div className="flex flex-col gap-1 mb-2 select-none">
-                      <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl border border-white/10">
-                        <Mic size={18} className="text-white/60" />
-                        <span className="text-xs font-bold">Neural Voice Transmission</span>
-                      </div>
-                      {msg.attachments?.[0]?.url && <AudioPlayer src={msg.attachments[0].url} />}
-                    </div>
-                  )}
-                  
-                  <p className="text-[14px] leading-relaxed font-medium whitespace-pre-wrap break-words">
-                    {renderContent(msg.content)}
-                  </p>
-                  
-                  <div className={`text-[9px] mt-2 font-bold opacity-40 uppercase tracking-widest select-none ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
+          {activeChat.messages.map((msg) => {
+            const displayContent = renderContent(msg.content);
+            
+            // IF CONTENT IS EMPTY (LIKELY SIGNAL ACKNOWLEDGED), DON'T RENDER THE BUBBLE AT ALL
+            if (!displayContent && msg.role !== 'user' && msg.type !== 'audio' && msg.type !== 'file') return null;
 
-                  {msg.reacted && (
-                     <div className="absolute -bottom-2 -right-2 bg-slate-800 border border-slate-700 p-1 rounded-lg text-[10px] shadow-lg select-none">
-                        <Check size={10} className="text-emerald-500" />
-                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+            return (
+              <div key={msg.id} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.role === 'system' ? (
+                  <div className="w-full text-center py-3">
+                    <span className="bg-slate-900 text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] px-4 py-1.5 rounded-full border border-slate-800">
+                      {displayContent}
+                    </span>
+                  </div>
+                ) : (
+                  <div className={`
+                    max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all 
+                    ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}
+                    select-text cursor-text
+                  `}>
+                    {msg.type === 'file' && (
+                      <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10 select-none">
+                        <FileIcon size={18} className="text-white/60" />
+                        <span className="text-xs font-bold truncate">{displayContent}</span>
+                      </div>
+                    )}
+                    {msg.type === 'audio' && (
+                      <div className="flex flex-col gap-1 mb-2 select-none">
+                        <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl border border-white/10">
+                          <Mic size={18} className="text-white/60" />
+                          <span className="text-xs font-bold">Neural Voice Transmission</span>
+                        </div>
+                        {msg.attachments?.[0]?.url && <AudioPlayer src={msg.attachments[0].url} />}
+                      </div>
+                    )}
+                    
+                    <p className="text-[14px] leading-relaxed font-medium whitespace-pre-wrap break-words">
+                      {displayContent}
+                    </p>
+                    
+                    <div className={`text-[9px] mt-2 font-bold opacity-40 uppercase tracking-widest select-none ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+
+                    {msg.reacted && (
+                       <div className="absolute -bottom-2 -right-2 bg-slate-800 border border-slate-700 p-1 rounded-lg text-[10px] shadow-lg select-none">
+                          <Check size={10} className="text-emerald-500" />
+                       </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {isTyping && (
             <div className="flex justify-start">
               <div className="bg-slate-900/50 border border-slate-800/30 px-5 py-4 rounded-3xl rounded-tl-none shadow-sm flex gap-1.5">
