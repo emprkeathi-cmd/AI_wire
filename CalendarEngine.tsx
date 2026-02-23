@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
-  ChevronLeft, ChevronRight, Plus, X, Activity, Trash2
+  ChevronLeft, ChevronRight, Plus, X, Activity, Trash2, Edit2
 } from 'lucide-react';
 import { Chat, Message, ThemePalette } from './types';
 
@@ -22,6 +22,7 @@ interface CalendarEngineProps {
   setInputText: (s: string) => void;
   onSendMessage: (content?: string, type?: any, extra?: any) => void;
   onDeleteMessage: (id: string) => void;
+  onEditMessage: (id: string, newContent: string, newCategoryId: string) => void; // Added edit prop
 }
 
 export const CalendarEngine: React.FC<CalendarEngineProps> = (props) => {
@@ -29,8 +30,11 @@ export const CalendarEngine: React.FC<CalendarEngineProps> = (props) => {
     activeChat, currentTheme, palette, currentCalendarDate, setCurrentCalendarDate,
     selectedEventDate, setSelectedEventDate, isDayDetailOpen, setIsDayDetailOpen,
     isEventModalOpen, setIsEventModalOpen, selectedCategoryId, setSelectedCategoryId,
-    inputText, setInputText, onSendMessage, onDeleteMessage
+    inputText, setInputText, onSendMessage, onDeleteMessage, onEditMessage // Destructured new prop
   } = props;
+
+  // Added state to track which event is being edited
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
   const calendarData = useMemo(() => {
     const year = currentCalendarDate.getFullYear();
@@ -101,6 +105,8 @@ export const CalendarEngine: React.FC<CalendarEngineProps> = (props) => {
                      const date = String(day.getDate()).padStart(2, '0');
                      setSelectedEventDate(`${year}-${month}-${date}`); 
                      setSelectedCategoryId(activeChat.categories[0]?.id || null);
+                     setEditingEventId(null); // Reset edit state
+                     setInputText(''); // Reset text
                      setIsEventModalOpen(true); 
                    }} 
                    className="p-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-slate-400 hover:text-white rounded-lg"
@@ -140,7 +146,12 @@ export const CalendarEngine: React.FC<CalendarEngineProps> = (props) => {
                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Signal Records</span>
                </div>
                <div className="flex items-center gap-2">
-                 <button onClick={() => { setSelectedCategoryId(activeChat.categories[0]?.id || null); setIsEventModalOpen(true); }} className={`p-2 ${currentTheme.bg} text-white rounded-xl hover:opacity-90 transition-all shadow-lg active:scale-95`}><Plus size={20} /></button>
+                 <button onClick={() => { 
+                   setSelectedCategoryId(activeChat.categories[0]?.id || null); 
+                   setEditingEventId(null); // Reset edit state
+                   setInputText(''); // Reset text
+                   setIsEventModalOpen(true); 
+                 }} className={`p-2 ${currentTheme.bg} text-white rounded-xl hover:opacity-90 transition-all shadow-lg active:scale-95`}><Plus size={20} /></button>
                  <button onClick={() => setIsDayDetailOpen(false)} className="p-2 text-slate-500 hover:text-white transition-colors"><X size={28} /></button>
                </div>
             </div>
@@ -160,6 +171,20 @@ export const CalendarEngine: React.FC<CalendarEngineProps> = (props) => {
                           <span className="text-[9px] font-bold text-slate-500 ml-auto">{new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         <p className="text-sm font-medium text-slate-100 whitespace-pre-wrap">{ev.content}</p>
+                        
+                        {/* Added Edit Button */}
+                        <button 
+                          onClick={() => {
+                            setEditingEventId(ev.id);
+                            setInputText(ev.content);
+                            setSelectedCategoryId(ev.categoryId || activeChat.categories[0]?.id || null);
+                            setIsEventModalOpen(true);
+                          }} 
+                          className="absolute right-12 top-4 p-2 text-slate-700 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        
                         <button onClick={() => onDeleteMessage(ev.id)} className="absolute right-4 top-4 p-2 text-slate-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
                       </div>
                     );
@@ -179,12 +204,27 @@ export const CalendarEngine: React.FC<CalendarEngineProps> = (props) => {
       {/* Manual Entry Modal */}
       {isEventModalOpen && selectedEventDate && (
         <div className="fixed inset-0 flex items-center justify-center z-[120] p-4">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsEventModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => {
+            setIsEventModalOpen(false);
+            setEditingEventId(null);
+            setInputText('');
+          }} />
           <div className="relative bg-slate-900 w-full max-md rounded-[2.5rem] border border-slate-800 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-6 sm:p-8">
                <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center gap-3 text-white"><div className={`p-3 ${currentTheme.bg} text-white rounded-2xl`}><Plus size={24} /></div><h3 className="text-xl font-black uppercase tracking-tight">Direct Entry</h3></div>
-                <button onClick={() => setIsEventModalOpen(false)} className="p-2 text-slate-500 hover:text-white transition-colors"><X size={28} /></button>
+                <div className="flex items-center gap-3 text-white">
+                  <div className={`p-3 ${currentTheme.bg} text-white rounded-2xl`}>
+                    {editingEventId ? <Edit2 size={24} /> : <Plus size={24} />}
+                  </div>
+                  <h3 className="text-xl font-black uppercase tracking-tight">
+                    {editingEventId ? 'Update Entry' : 'Direct Entry'}
+                  </h3>
+                </div>
+                <button onClick={() => {
+                  setIsEventModalOpen(false);
+                  setEditingEventId(null);
+                  setInputText('');
+                }} className="p-2 text-slate-500 hover:text-white transition-colors"><X size={28} /></button>
               </div>
               <div className="space-y-6">
                 <div>
@@ -212,10 +252,20 @@ export const CalendarEngine: React.FC<CalendarEngineProps> = (props) => {
                   />
                 </div>
                 <button 
-                  onClick={() => onSendMessage(inputText, 'event', { date: selectedEventDate, categoryId: selectedCategoryId || activeChat.categories[0].id })}
+                  onClick={() => {
+                    const fallbackId = activeChat.categories[0]?.id || '';
+                    if (editingEventId) {
+                      onEditMessage(editingEventId, inputText, selectedCategoryId || fallbackId);
+                    } else {
+                      onSendMessage(inputText, 'event', { date: selectedEventDate, categoryId: selectedCategoryId || fallbackId });
+                    }
+                    setEditingEventId(null); // Clear state
+                    setInputText(''); // Clear text
+                    setIsEventModalOpen(false); // Close modal
+                  }}
                   className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${inputText.trim() ? `${currentTheme.bg} text-white shadow-xl shadow-${palette}-500/20 active:scale-95` : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
                 >
-                  Commit Signal
+                  {editingEventId ? 'Update Signal' : 'Commit Signal'}
                 </button>
               </div>
             </div>
