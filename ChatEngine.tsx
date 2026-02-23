@@ -61,22 +61,19 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
     onCancelRecording, onStopRecording, messagesEndRef, chatFileInputRef
   } = props;
 
-  // SIMPLE RENDERER: Just gets the text out of the n8n object.
+  // BULLETPROOF RENDERER: Extracts the text, doesn't hide anything.
   const renderContent = (content: any) => {
     if (!content) return "";
     
     if (typeof content === 'object') {
-      // Look for any common key n8n might use.
-      const text = content.output || content.message || content.response || content.text || JSON.stringify(content);
-      // If it's the generic acknowledgment, we keep it visible for now so you know the connection worked
-      return text;
+      return content.output || content.message || content.response || content.text || JSON.stringify(content);
     }
 
     if (typeof content === 'string') {
       try {
         if (content.trim().startsWith('{')) {
           const parsed = JSON.parse(content);
-          return parsed.output || parsed.message || parsed.text || content;
+          return parsed.output || parsed.message || parsed.response || parsed.text || content;
         }
       } catch (e) {
         return content;
