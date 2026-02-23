@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { 
-  Paperclip, Mic, Send, Trash2, Check, Paperclip as FileIcon
+  Paperclip, Mic, Send, Trash2, Check, Paperclip as FileIcon 
 } from 'lucide-react';
 import { Chat, Message, ThemePalette } from './types';
 
@@ -61,21 +61,28 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
     onCancelRecording, onStopRecording, messagesEndRef, chatFileInputRef
   } = props;
 
-  // NEURAL RENDERER: Specifically looks for the 'output' key from n8n to prevent crashes
+  // NEURAL RENDERER: Hardened to catch n8n's "Signal Acknowledgment" and extract real data
   const renderContent = (content: any) => {
     if (!content) return "";
     
-    // 1. Handle Object format (Raw n8n response)
-    if (typeof content === 'object') {
-      return content.output || content.message || JSON.stringify(content);
-    }
+    const parseDeep = (obj: any): string => {
+      // Priority list of keys n8n/AI usually dumps text into
+      const val = obj.output || obj.message || obj.response || obj.text || obj.data || (typeof obj === 'string' ? obj : JSON.stringify(obj));
+      
+      // If we're still getting the generic 'Signal Acknowledgment', it means n8n hasn't sent real data yet
+      if (val === "Signal Acknowledgment") {
+        return "System: Transmission received, awaiting neural synthesis... (Check n8n Response Node)";
+      }
+      return val;
+    };
 
-    // 2. Handle String format (and check for stringified JSON)
+    if (typeof content === 'object') return parseDeep(content);
+
     if (typeof content === 'string') {
       try {
         if (content.trim().startsWith('{')) {
           const parsed = JSON.parse(content);
-          return parsed.output || parsed.message || content;
+          return parseDeep(parsed);
         }
       } catch (e) {
         return content;
@@ -94,7 +101,7 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
   }, [activeChat.messages.length, isTyping, activeChat.id]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full selection:bg-indigo-500/30">
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         <div className="space-y-8 max-w-4xl mx-auto w-full pt-4 pb-20">
           {activeChat.messages.map((msg) => (
@@ -106,15 +113,19 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
                   </span>
                 </div>
               ) : (
-                <div className={`max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}`}>
+                <div className={`
+                  max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all 
+                  ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}
+                  select-text cursor-text
+                `}>
                   {msg.type === 'file' && (
-                    <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10">
+                    <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10 select-none">
                       <FileIcon size={18} className="text-white/60" />
                       <span className="text-xs font-bold truncate">{renderContent(msg.content)}</span>
                     </div>
                   )}
                   {msg.type === 'audio' && (
-                    <div className="flex flex-col gap-1 mb-2">
+                    <div className="flex flex-col gap-1 mb-2 select-none">
                       <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl border border-white/10">
                         <Mic size={18} className="text-white/60" />
                         <span className="text-xs font-bold">Neural Voice Transmission</span>
@@ -127,12 +138,12 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
                     {renderContent(msg.content)}
                   </p>
                   
-                  <div className={`text-[9px] mt-2 font-bold opacity-40 uppercase tracking-widest ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                  <div className={`text-[9px] mt-2 font-bold opacity-40 uppercase tracking-widest select-none ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
 
                   {msg.reacted && (
-                     <div className="absolute -bottom-2 -right-2 bg-slate-800 border border-slate-700 p-1 rounded-lg text-[10px] shadow-lg">
+                     <div className="absolute -bottom-2 -right-2 bg-slate-800 border border-slate-700 p-1 rounded-lg text-[10px] shadow-lg select-none">
                         <Check size={10} className="text-emerald-500" />
                      </div>
                   )}
