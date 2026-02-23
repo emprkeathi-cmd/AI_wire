@@ -63,7 +63,31 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
     messagesEndRef, chatFileInputRef
   } = props;
 
-  // Bottom Lock implementation: Scroll to bottom whenever messages or typing state changes
+  // SAFE CONTENT RENDERER: Prevents the "Black Screen" crash
+  const renderContent = (content: any) => {
+    if (!content) return "";
+    
+    // If it's already a string, try to see if it's JSON-stringified
+    if (typeof content === 'string') {
+      try {
+        if (content.trim().startsWith('{')) {
+          const parsed = JSON.parse(content);
+          return parsed.output || parsed.message || content;
+        }
+      } catch (e) {
+        return content;
+      }
+      return content;
+    }
+
+    // If n8n sent a raw object (e.g. {output: "..."}) and it was saved to state as an object
+    if (typeof content === 'object') {
+      return content.output || content.message || JSON.stringify(content);
+    }
+
+    return String(content);
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -78,10 +102,10 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
           {activeChat.messages.map((msg, index) => (
             <div key={msg.id} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'system' ? (
-                <div className="w-full text-center py-3"><span className="bg-slate-900 text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] px-4 py-1.5 rounded-full border border-slate-800">{msg.content}</span></div>
+                <div className="w-full text-center py-3"><span className="bg-slate-900 text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] px-4 py-1.5 rounded-full border border-slate-800">{renderContent(msg.content)}</span></div>
               ) : (
                 <div className={`max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}`}>
-                  {msg.type === 'file' && <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10"><FileIcon size={18} className="text-white/60" /><span className="text-xs font-bold truncate">{msg.content}</span></div>}
+                  {msg.type === 'file' && <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10"><FileIcon size={18} className="text-white/60" /><span className="text-xs font-bold truncate">{renderContent(msg.content)}</span></div>}
                   {msg.type === 'audio' && (
                     <div className="flex flex-col gap-1 mb-2">
                        <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl border border-white/10">
@@ -91,7 +115,9 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
                       {msg.attachments?.[0]?.url && <AudioPlayer src={msg.attachments[0].url} />}
                     </div>
                   )}
-                  <p className="text-[14px] leading-relaxed font-medium whitespace-pre-wrap break-words">{msg.content}</p>
+                  {/* Updated p tag to use renderContent */}
+                  <p className="text-[14px] leading-relaxed font-medium whitespace-pre-wrap break-words">{renderContent(msg.content)}</p>
+                  
                   <div className={`text-[9px] mt-2 font-bold opacity-40 uppercase tracking-widest ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                   {msg.role === 'assistant' && !msg.reacted && index === lastAssistantMsgIndex && (
                     <div className="absolute -bottom-10 left-0 flex gap-2 animate-in fade-in slide-in-from-top-1">
