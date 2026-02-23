@@ -1,7 +1,6 @@
-
 import React, { useRef, useEffect } from 'react';
 import { 
-  Paperclip, Mic, Send, Trash2, Bot, Check, Paperclip as FileIcon
+  Paperclip, Mic, Send, Trash2, Check, Paperclip as FileIcon
 } from 'lucide-react';
 import { Chat, Message, ThemePalette } from './types';
 
@@ -58,16 +57,20 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
   const { 
     activeChat, currentTheme, isTyping, inputText, setInputText, 
     isRecording, recordingDuration, audioBlob, holdProgress, 
-    lastAssistantMsgIndex, onSendMessage, onReaction, onFileUpload,
-    onMicMouseDown, onMicMouseUp, onCancelRecording, onStopRecording,
-    messagesEndRef, chatFileInputRef
+    onSendMessage, onFileUpload, onMicMouseDown, onMicMouseUp, 
+    onCancelRecording, onStopRecording, messagesEndRef, chatFileInputRef
   } = props;
 
-  // SAFE CONTENT RENDERER: Prevents the "Black Screen" crash
+  // NEURAL RENDERER: Specifically looks for the 'output' key from n8n to prevent crashes
   const renderContent = (content: any) => {
     if (!content) return "";
     
-    // If it's already a string, try to see if it's JSON-stringified
+    // 1. Handle Object format (Raw n8n response)
+    if (typeof content === 'object') {
+      return content.output || content.message || JSON.stringify(content);
+    }
+
+    // 2. Handle String format (and check for stringified JSON)
     if (typeof content === 'string') {
       try {
         if (content.trim().startsWith('{')) {
@@ -78,11 +81,6 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
         return content;
       }
       return content;
-    }
-
-    // If n8n sent a raw object (e.g. {output: "..."}) and it was saved to state as an object
-    if (typeof content === 'object') {
-      return content.output || content.message || JSON.stringify(content);
     }
 
     return String(content);
@@ -99,34 +97,42 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         <div className="space-y-8 max-w-4xl mx-auto w-full pt-4 pb-20">
-          {activeChat.messages.map((msg, index) => (
+          {activeChat.messages.map((msg) => (
             <div key={msg.id} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'system' ? (
-                <div className="w-full text-center py-3"><span className="bg-slate-900 text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] px-4 py-1.5 rounded-full border border-slate-800">{renderContent(msg.content)}</span></div>
+                <div className="w-full text-center py-3">
+                  <span className="bg-slate-900 text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] px-4 py-1.5 rounded-full border border-slate-800">
+                    {renderContent(msg.content)}
+                  </span>
+                </div>
               ) : (
                 <div className={`max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}`}>
-                  {msg.type === 'file' && <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10"><FileIcon size={18} className="text-white/60" /><span className="text-xs font-bold truncate">{renderContent(msg.content)}</span></div>}
+                  {msg.type === 'file' && (
+                    <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10">
+                      <FileIcon size={18} className="text-white/60" />
+                      <span className="text-xs font-bold truncate">{renderContent(msg.content)}</span>
+                    </div>
+                  )}
                   {msg.type === 'audio' && (
                     <div className="flex flex-col gap-1 mb-2">
-                       <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl border border-white/10">
+                      <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl border border-white/10">
                         <Mic size={18} className="text-white/60" />
                         <span className="text-xs font-bold">Neural Voice Transmission</span>
                       </div>
                       {msg.attachments?.[0]?.url && <AudioPlayer src={msg.attachments[0].url} />}
                     </div>
                   )}
-                  {/* Updated p tag to use renderContent */}
-                  <p className="text-[14px] leading-relaxed font-medium whitespace-pre-wrap break-words">{renderContent(msg.content)}</p>
                   
-                  <div className={`text-[9px] mt-2 font-bold opacity-40 uppercase tracking-widest ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                  {msg.role === 'assistant' && !msg.reacted && index === lastAssistantMsgIndex && (
-                    <div className="absolute -bottom-10 left-0 flex gap-2 animate-in fade-in slide-in-from-top-1">
-                      <button onClick={() => onReaction(msg, '✅')} className="bg-slate-800/80 backdrop-blur-md border border-slate-700 p-2 rounded-xl hover:bg-slate-700 hover:scale-110 active:scale-90 transition-all shadow-lg">✅</button>
-                      <button onClick={() => onReaction(msg, '❌')} className="bg-slate-800/80 backdrop-blur-md border border-slate-700 p-2 rounded-xl hover:bg-slate-700 hover:scale-110 active:scale-90 transition-all shadow-lg">❌</button>
-                    </div>
-                  )}
+                  <p className="text-[14px] leading-relaxed font-medium whitespace-pre-wrap break-words">
+                    {renderContent(msg.content)}
+                  </p>
+                  
+                  <div className={`text-[9px] mt-2 font-bold opacity-40 uppercase tracking-widest ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+
                   {msg.reacted && (
-                     <div className="absolute -bottom-2 -right-2 bg-slate-800 border border-slate-700 p-1 rounded-lg text-[10px] shadow-lg animate-in zoom-in-50">
+                     <div className="absolute -bottom-2 -right-2 bg-slate-800 border border-slate-700 p-1 rounded-lg text-[10px] shadow-lg">
                         <Check size={10} className="text-emerald-500" />
                      </div>
                   )}
