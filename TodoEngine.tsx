@@ -1,6 +1,6 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { 
-  Plus, ListTodo, X, Activity, CheckCircle2, Circle, Bell, BellOff, Trash2
+  Plus, ListTodo, X, Activity, CheckCircle2, Circle, Bell, BellOff, Trash2, Edit2
 } from 'lucide-react';
 import { Chat, ThemePalette } from './types';
 
@@ -23,6 +23,7 @@ interface TodoEngineProps {
   onSendMessage: (content?: string, type?: any, extra?: any) => void;
   onToggleTaskStatus: (id: string, current: any) => void;
   onDeleteTask: (id: string) => void;
+  onEditTask: (id: string, updates: any) => void; // Added for edit functionality
 }
 
 export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
@@ -30,10 +31,13 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
     activeChat, currentTheme, palette, isTodoModalOpen, setIsTodoModalOpen,
     todoFilter, setTodoFilter, selectedCategoryId, setSelectedCategoryId,
     inputText, setInputText, todoNotes, setTodoNotes, todoReminder, setTodoReminder,
-    onSendMessage, onToggleTaskStatus, onDeleteTask
+    onSendMessage, onToggleTaskStatus, onDeleteTask, onEditTask
   } = props;
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Local state to track if we are editing an existing task
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const filteredTasks = useMemo(() => {
     return activeChat.messages.filter(m => {
@@ -47,7 +51,6 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
   }, [activeChat, todoFilter]);
 
   const handleToggle = (id: string, currentStatus: any) => {
-    // Play sound only when marking as done (from active to done)
     if (currentStatus === 'active' || !currentStatus) {
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
@@ -57,9 +60,48 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
     onToggleTaskStatus(id, currentStatus);
   };
 
+  // Open modal and populate fields with task data
+  const startEditing = (task: any) => {
+    setEditingTaskId(task.id);
+    setInputText(task.content);
+    setTodoNotes(task.todoNotes || '');
+    setTodoReminder(task.todoReminder || false);
+    setSelectedCategoryId(task.categoryId);
+    setIsTodoModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsTodoModalOpen(false);
+    setEditingTaskId(null);
+    setInputText('');
+    setTodoNotes('');
+    setTodoReminder(false);
+  };
+
+  const handleSave = () => {
+    const taskData = {
+      content: inputText,
+      categoryId: selectedCategoryId || activeChat.categories[0].id,
+      todoReminder,
+      todoNotes
+    };
+
+    if (editingTaskId) {
+      onEditTask(editingTaskId, taskData);
+      closeModal();
+    } else {
+      onSendMessage(inputText, 'task', { 
+        categoryId: taskData.categoryId, 
+        todoReminder, 
+        todoNotes 
+      });
+      // Parent likely clears state onSendMessage, but we close here
+      setIsTodoModalOpen(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto w-full flex flex-col items-center pt-8 pb-20 overflow-y-auto h-full p-4 custom-scrollbar">
-      {/* Hidden Audio Element for Task Completion */}
       <audio 
         ref={audioRef} 
         src="https://raw.githubusercontent.com/emprkeathi-cmd/assets_Ai-Wire/main/Task_done.mp3" 
@@ -67,7 +109,11 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
       />
 
       <button 
-        onClick={() => { setSelectedCategoryId(activeChat.categories[0].id); setIsTodoModalOpen(true); }} 
+        onClick={() => { 
+          setEditingTaskId(null);
+          setSelectedCategoryId(activeChat.categories[0].id); 
+          setIsTodoModalOpen(true); 
+        }} 
         className={`flex items-center gap-2 ${currentTheme.bg} text-white font-black uppercase tracking-widest px-8 py-4 rounded-3xl shadow-2xl hover:scale-105 active:scale-95 transition-all mb-8`}
       >
         <Plus size={20} /> Add Task
@@ -88,6 +134,8 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
       <div className="w-full space-y-3">
         {filteredTasks.length > 0 ? filteredTasks.map(task => {
           const category = activeChat.categories.find(c => c.id === task.categoryId);
+          const isActive = task.todoStatus === 'active' || !task.todoStatus;
+
           return (
             <div key={task.id} className="flex items-center gap-4 bg-slate-900 border border-slate-800/50 p-5 rounded-[2rem] hover:bg-slate-800/80 transition-all group shadow-sm">
               <button onClick={() => handleToggle(task.id, task.todoStatus || 'active')} className={`shrink-0 transition-all ${task.todoStatus === 'done' ? 'text-emerald-500' : 'text-slate-600 hover:text-slate-400'}`}>
@@ -103,9 +151,21 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
                 {task.todoNotes && <p className="text-[10px] text-slate-500 font-medium mt-1 italic truncate">{task.todoNotes}</p>}
               </div>
 
-              <button onClick={() => onDeleteTask(task.id)} className="p-2 text-slate-700 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
-                <Trash2 size={20} />
-              </button>
+              <div className="flex items-center gap-1">
+                {/* EDIT BUTTON: Only visible for Active tasks */}
+                {isActive && (
+                  <button 
+                    onClick={() => startEditing(task)} 
+                    className="p-2 text-slate-700 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all"
+                  >
+                    <Edit2 size={18} />
+                  </button>
+                )}
+                
+                <button onClick={() => onDeleteTask(task.id)} className="p-2 text-slate-700 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                  <Trash2 size={20} />
+                </button>
+              </div>
             </div>
           );
         }) : (
@@ -116,15 +176,22 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
         )}
       </div>
 
-      {/* Todo Add Task Modal */}
+      {/* Todo Add/Edit Task Modal */}
       {isTodoModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-[120] p-4">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsTodoModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={closeModal} />
           <div className="relative bg-slate-900 w-full max-md rounded-[2.5rem] border border-slate-800 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-8">
               <div className="flex justify-between items-center mb-10">
-                <div className="flex items-center gap-3 text-white"><div className={`p-3 ${currentTheme.bg} text-white rounded-2xl`}><ListTodo size={24} /></div><h3 className="text-xl font-black uppercase tracking-tight italic">Initialize Task</h3></div>
-                <button onClick={() => setIsTodoModalOpen(false)} className="p-2 text-slate-500 hover:text-white transition-colors"><X size={28} /></button>
+                <div className="flex items-center gap-3 text-white">
+                  <div className={`p-3 ${currentTheme.bg} text-white rounded-2xl`}>
+                    <ListTodo size={24} />
+                  </div>
+                  <h3 className="text-xl font-black uppercase tracking-tight italic">
+                    {editingTaskId ? 'Reconfigure Task' : 'Initialize Task'}
+                  </h3>
+                </div>
+                <button onClick={closeModal} className="p-2 text-slate-500 hover:text-white transition-colors"><X size={28} /></button>
               </div>
 
               <div className="space-y-6">
@@ -181,10 +248,10 @@ export const TodoEngine: React.FC<TodoEngineProps> = (props) => {
                 </div>
 
                 <button 
-                  onClick={() => onSendMessage(inputText, 'task', { categoryId: selectedCategoryId || activeChat.categories[0].id, todoReminder, todoNotes })}
+                  onClick={handleSave}
                   className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${inputText.trim() ? `${currentTheme.bg} text-white shadow-xl shadow-${palette}-500/20 active:scale-95` : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
                 >
-                  Save Task
+                  {editingTaskId ? 'Commit Changes' : 'Save Task'}
                 </button>
               </div>
             </div>
