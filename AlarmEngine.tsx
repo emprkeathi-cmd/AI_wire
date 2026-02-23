@@ -34,17 +34,13 @@ export const AlarmEngine: React.FC<AlarmEngineProps> = ({ activeChat, currentThe
     });
   };
 
-  // Trigger centering when popup opens
   useEffect(() => {
     if (isPopupOpen) {
       centerPopup();
     }
   }, [isPopupOpen]);
   
-  // Alarm State
   const [newAlarmTime, setNewAlarmTime] = useState('08:00');
-  
-  // Timer State (Local, transient)
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerInput, setTimerInput] = useState({ h: 0, m: 0, s: 0 });
@@ -53,7 +49,6 @@ export const AlarmEngine: React.FC<AlarmEngineProps> = ({ activeChat, currentThe
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const timerAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Updated to raw GitHub links as requested
   const ALARM_SOUND = "https://raw.githubusercontent.com/emprkeathi-cmd/assets_Ai-Wire/main/alarm_sound.mp3";
   const TIMER_SOUND = "https://raw.githubusercontent.com/emprkeathi-cmd/assets_Ai-Wire/main/timer_finished.mp3";
 
@@ -62,10 +57,8 @@ export const AlarmEngine: React.FC<AlarmEngineProps> = ({ activeChat, currentThe
     const interval = setInterval(() => {
       const now = new Date();
       setCurrentTime(now);
-      
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       activeChat.alarms?.forEach(alarm => {
-        // Only trigger if active and time matches exactly (at the start of the minute)
         if (alarm.isActive && alarm.time === timeStr && now.getSeconds() === 0) {
           triggerAlarm(alarm);
         }
@@ -168,7 +161,7 @@ export const AlarmEngine: React.FC<AlarmEngineProps> = ({ activeChat, currentThe
       timerAudioRef.current.play().catch(e => console.error("Timer audio play blocked:", e));
       setIsRinging(true);
     }
-    setIsPopupOpen(true);
+    // CHANGE: Removed setIsPopupOpen(true) so it doesn't force open on finish
   };
 
   const stopAllSounds = () => {
@@ -288,7 +281,8 @@ export const AlarmEngine: React.FC<AlarmEngineProps> = ({ activeChat, currentThe
                   type="time" 
                   value={newAlarmTime}
                   onChange={(e) => setNewAlarmTime(e.target.value)}
-                  className="w-full sm:flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-3xl font-mono font-bold text-white focus:outline-none focus:border-indigo-500/50 transition-all shadow-inner"
+                  // CHANGE: Added invert filter to make the native black clock icon white
+                  className="w-full sm:flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-3xl font-mono font-bold text-white focus:outline-none focus:border-indigo-500/50 transition-all shadow-inner [&::-webkit-calendar-picker-indicator]:invert"
                 />
                 <button 
                   onClick={addAlarm}
@@ -426,25 +420,35 @@ export const AlarmEngine: React.FC<AlarmEngineProps> = ({ activeChat, currentThe
 
           {/* Compact Content */}
           <div className="flex-1 flex flex-col items-center justify-center p-3 gap-2">
-             <div className={`font-mono font-bold tracking-tight text-white leading-none ${isTimerRunning ? 'animate-pulse' : ''}`} 
+             <div className={`font-mono font-bold tracking-tight text-white leading-none ${isTimerRunning || isRinging ? 'animate-pulse' : ''}`} 
                   style={{ fontSize: `${Math.min(windowSize.w / 6, windowSize.h / 3)}px` }}>
                {formatTime(timerSeconds)}
              </div>
              
-             <div className="flex gap-2">
-                <button 
-                  onClick={() => setIsTimerRunning(!isTimerRunning)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all shadow-xl active:scale-90 ${isTimerRunning ? 'bg-amber-500 text-slate-950 shadow-amber-500/20' : 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'}`}
-                >
-                  {isTimerRunning ? <Pause size={18} /> : <Play size={18} />}
-                </button>
-                <button 
-                  onClick={resetTimer}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all active:scale-90"
-                >
-                  <RotateCcw size={16} />
-                </button>
-             </div>
+             {/* CHANGE: Added conditional button to Stop Alarm if it's currently ringing */}
+             {isRinging ? (
+               <button 
+                 onClick={stopAllSounds}
+                 className="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 animate-pulse transition-all active:scale-95 shadow-lg shadow-rose-600/20"
+               >
+                 <Octagon size={14} /> Stop Alarm
+               </button>
+             ) : (
+               <div className="flex gap-2">
+                 <button 
+                   onClick={() => setIsTimerRunning(!isTimerRunning)}
+                   className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all shadow-xl active:scale-90 ${isTimerRunning ? 'bg-amber-500 text-slate-950 shadow-amber-500/20' : 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'}`}
+                 >
+                   {isTimerRunning ? <Pause size={18} /> : <Play size={18} />}
+                 </button>
+                 <button 
+                   onClick={resetTimer}
+                   className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all active:scale-90"
+                 >
+                   <RotateCcw size={16} />
+                 </button>
+               </div>
+             )}
           </div>
 
           {/* Minimal Resize Handle */}
