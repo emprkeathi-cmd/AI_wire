@@ -224,44 +224,55 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
     setCurrentVolume(0);
   };
 
-  const handleAudioResponse = async (audioSource: string, shouldEnd: boolean) => {
+  const handleAudioResponse = async (audioLink: string, shouldEnd: boolean) => {
     if (!sessionActiveRef.current) return;
+    
     setStatus('playing');
     isPlayingAudioRef.current = true;
     
-    // Ensure mic remains disabled during playback
+    // Ensure mic remains disabled during remote stream buffering/playback
     if (streamRef.current) {
       streamRef.current.getAudioTracks().forEach(track => track.enabled = false);
     }
 
-    const audio = new Audio(audioSource);
+    const audio = new Audio(audioLink);
+    
+    // Enable cross-origin if your audio host requires it
+    audio.crossOrigin = "anonymous"; 
+
+    audio.oncanplaythrough = () => {
+      // Audio buffered enough to start
+      audio.play().catch(e => {
+        console.error("Playback failed", e);
+        resumeListening();
+      });
+    };
+
     audio.onended = () => {
       isPlayingAudioRef.current = false;
       if (shouldEnd) {
         cleanup();
       } else {
-        // RE-ENABLE MIC TRACKS ONLY NOW
-        if (streamRef.current) {
-          streamRef.current.getAudioTracks().forEach(track => track.enabled = true);
-        }
-        setStatus('listening');
+        resumeListening();
       }
     };
-    audio.onerror = () => {
-      console.error("Audio Playback Error");
+
+    audio.onerror = (e) => {
+      console.error("External Link Error:", e);
       isPlayingAudioRef.current = false;
-      if (streamRef.current) streamRef.current.getAudioTracks().forEach(track => track.enabled = true);
-      setStatus('listening');
+      resumeListening();
     };
-    audio.play().catch(e => {
-      console.error("Audio Playback Promise Rejected", e);
-      isPlayingAudioRef.current = false;
-      if (streamRef.current) streamRef.current.getAudioTracks().forEach(track => track.enabled = true);
-      setStatus('listening');
-    });
   };
 
-  // Monitor Assistant Messages for Signal Response
+  // Helper to DRY up the code
+  const resumeListening = () => {
+    if (streamRef.current && sessionActiveRef.current) {
+      streamRef.current.getAudioTracks().forEach(track => track.enabled = true);
+      setStatus('listening');
+    }
+  };
+
+  // Update the Message Monitor useEffect for link handling
   useEffect(() => {
     const lastMsg = activeChat.messages[activeChat.messages.length - 1];
     if (lastMsg?.role === 'assistant') {
@@ -269,6 +280,7 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
         let data = JSON.parse(lastMsg.content);
         if (Array.isArray(data)) data = data[0];
         
+        // Handle Call Initiation/Termination
         if (data.call === true && statusRef.current === 'idle') {
           startCallSession();
         } else if (data.call === false) {
@@ -276,20 +288,19 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
           return;
         }
 
-        if (data.audio) {
+        // Handle Audio Link
+        if (data.audio && typeof data.audio === 'string' && data.audio.startsWith('http')) {
           handleAudioResponse(data.audio, data.signal === 'end');
         } else {
-          // If the AI just sends text or empty JSON during a call, resume if we are still active
+          // Fallback if message is just text or invalid audio
           if (statusRef.current === 'processing' && sessionActiveRef.current) {
-            if (streamRef.current) streamRef.current.getAudioTracks().forEach(track => track.enabled = true);
-            setStatus('listening');
+            resumeListening();
           }
         }
       } catch (e) {
-        // Not valid JSON - handle as fallback
+        // Not valid JSON
         if (statusRef.current === 'processing' && sessionActiveRef.current) {
-          if (streamRef.current) streamRef.current.getAudioTracks().forEach(track => track.enabled = true);
-          setStatus('listening');
+          resumeListening();
         }
       }
     }
