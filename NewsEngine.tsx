@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ChevronLeft, ChevronRight, CheckCircle2, Circle, 
-  BookOpen, Trash2, Activity, Check, X, Zap 
+  BookOpen, Trash2, Activity, Check, X
 } from 'lucide-react';
 import { Chat, Message } from './types';
-import { sendMessageToN8N } from './services/n8nService';
 
 interface NewsEngineProps {
   activeChat: Chat;
@@ -17,7 +16,6 @@ export const NewsEngine: React.FC<NewsEngineProps> = ({ activeChat, currentTheme
   const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [isSendingSignal, setIsSendingSignal] = useState(false);
 
   const filteredPosts = useMemo(() => {
     return activeChat.messages.filter(m => m.type === 'post' && (activeTab === 'unread' ? !m.isRead : m.isRead));
@@ -84,31 +82,8 @@ export const NewsEngine: React.FC<NewsEngineProps> = ({ activeChat, currentTheme
     if (navigator.vibrate) navigator.vibrate(20);
   };
 
-  const handleGiveGetSignal = async () => {
-    if (!activeChat.webhookUrl || isSendingSignal) return;
-    setIsSendingSignal(true);
-    try {
-      await sendMessageToN8N(activeChat.webhookUrl, 'give_get', 'text');
-      if (navigator.vibrate) navigator.vibrate(50);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSendingSignal(false);
-    }
-  };
-
   return (
     <div className="h-full flex flex-col bg-[#05060a]">
-      {/* THE SYNC BUTTON - Nudged down slightly from top-10 to top-12 */}
-      <button 
-        onClick={handleGiveGetSignal}
-        disabled={isSendingSignal}
-        className={`fixed top-18 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> 
-        {isSendingSignal ? 'Syncing...' : 'Sync'}
-      </button>
-
       {/* HUD HEADER */}
       <div className="shrink-0 p-4 border-b border-slate-800/40 bg-[#0a0d14]/60 backdrop-blur-xl flex items-center justify-center">
         <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-800">
@@ -133,7 +108,7 @@ export const NewsEngine: React.FC<NewsEngineProps> = ({ activeChat, currentTheme
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
       >
-        {filteredPosts.length > 0 && activePost ? (
+        {filteredPosts.length > 0 ? (
           <div className="h-full w-full flex items-center justify-center p-4 sm:p-10">
             {/* THE CARD */}
             <div className="w-full max-w-2xl h-full flex flex-col bg-[#0f121d] border border-slate-800/60 rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.6)] overflow-hidden animate-in zoom-in-95 duration-200">
