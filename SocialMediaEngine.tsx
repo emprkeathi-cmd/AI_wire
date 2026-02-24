@@ -70,29 +70,38 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#02040a]">
-        <div className="shrink-0 mt-20 p-4 flex justify-end gap-2 border-b border-white/5 bg-black/20 backdrop-blur-md z-50">          
-           onClick={handleGiveGetSignal}
-           disabled={isSendingSignal}
-           className={`p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest border border-white/10 ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
-         >
-           <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> {isSendingSignal ? 'Sending...' : 'Give Get'}
-         </button>
-         <button 
-           onClick={handleGiveSignal}
-           disabled={isSendingSignal}
-           className={`p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest border border-white/10 ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
-         >
-           <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> {isSendingSignal ? 'Sending...' : 'Give Signal'}
-         </button>
-      </div>
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-10">
-        <div className="max-w-2xl mx-auto space-y-12 pb-32">
-          <div className="text-center space-y-2">
-           <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white">Social Management Hub</h2>
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Node ID: {activeChat.receiverId}</p>
-        </div>
+   <div className="h-full flex flex-col bg-[#02040a]">
+  {/* Header Container - Pushed down further with mt-48 and forced to top with z-[100] */}
+  <div className="shrink-0 mt-48 p-4 flex justify-end gap-2 border-b border-white/5 bg-black/20 backdrop-blur-md z-[100]">
+    <button 
+      onClick={handleGiveGetSignal}
+      disabled={isSendingSignal}
+      className={`p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest border border-white/10 ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> 
+      {isSendingSignal ? 'Sending...' : 'Give Get'}
+    </button>
 
+    <button 
+      onClick={handleGiveSignal}
+      disabled={isSendingSignal}
+      className={`p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest border border-white/10 ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> 
+      {isSendingSignal ? 'Sending...' : 'Give Signal'}
+    </button>
+  </div>
+
+  <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-10">
+    <div className="max-w-2xl mx-auto space-y-12 pb-32">
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white">Social Management Hub</h2>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Node ID: {activeChat.receiverId}</p>
+      </div>
+      {/* ... rest of your mapping code ... */}
+    </div>
+  </div>
+</div>
         {posts.length > 0 ? (
           posts.map((post) => (
             <div key={post.id} className="bg-[#0f121d] border border-slate-800/60 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
