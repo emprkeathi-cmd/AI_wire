@@ -390,6 +390,20 @@ const App: React.FC = () => {
   const handleUpdateBlueprint = (msgId: string, newContent: string) => { setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.map(m => m.id === msgId ? { ...m, content: newContent } : m) } : c)); };
   const handleDeleteMessage = (msgId: string) => { setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.filter(m => m.id !== msgId) } : c)); };
   
+  const handleEditMessage = (id: string, newContent: string, newCategoryId: string) => {
+    setChats(prev => prev.map(c => c.id === activeChatId ? {
+      ...c,
+      messages: c.messages.map(m => m.id === id ? { ...m, content: newContent, categoryId: newCategoryId } : m)
+    } : c));
+  };
+
+  const handleEditTask = (id: string, updates: any) => {
+    setChats(prev => prev.map(c => c.id === activeChatId ? {
+      ...c,
+      messages: c.messages.map(m => m.id === id ? { ...m, ...updates } : m)
+    } : c));
+  };
+
   const handleUpdateNewsMessage = (msgId: string, updates: Partial<Message>) => {
     setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.map(m => m.id === msgId ? { ...m, ...updates } : m) } : c));
   };
@@ -530,9 +544,9 @@ const App: React.FC = () => {
           ) : activeChat?.mode === 'blueprint' ? (
             <BlueprintEngine activeChat={activeChat} onDeploy={(title, content, assets) => handleSendMessage(content, 'blueprint', { title, assets })} onUpdate={handleUpdateBlueprint} onDelete={handleDeleteMessage} />
           ) : activeChat?.mode === 'todo' ? (
-            <TodoEngine activeChat={activeChat} currentTheme={currentTheme} palette={palette} isTodoModalOpen={isTodoModalOpen} setIsTodoModalOpen={setIsTodoModalOpen} todoFilter={todoFilter} setTodoFilter={setTodoFilter} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} todoNotes={todoNotes} setTodoNotes={setTodoNotes} todoReminder={todoReminder} setTodoReminder={setTodoReminder} onSendMessage={handleSendMessage} onToggleTaskStatus={toggleTaskStatus} onDeleteTask={deleteTask} />
+            <TodoEngine activeChat={activeChat} currentTheme={currentTheme} palette={palette} isTodoModalOpen={isTodoModalOpen} setIsTodoModalOpen={setIsTodoModalOpen} todoFilter={todoFilter} setTodoFilter={setTodoFilter} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} todoNotes={todoNotes} setTodoNotes={setTodoNotes} todoReminder={todoReminder} setTodoReminder={setTodoReminder} onSendMessage={handleSendMessage} onToggleTaskStatus={toggleTaskStatus} onDeleteTask={deleteTask} onEditTask={handleEditTask} />
           ) : activeChat?.mode === 'calendar' ? (
-            <CalendarEngine activeChat={activeChat} currentTheme={currentTheme} palette={palette} currentCalendarDate={currentCalendarDate} setCurrentCalendarDate={setCurrentCalendarDate} selectedEventDate={selectedEventDate} setSelectedEventDate={setSelectedEventDate} isDayDetailOpen={isDayDetailOpen} setIsDayDetailOpen={setIsDayDetailOpen} isEventModalOpen={isEventModalOpen} setIsEventModalOpen={setIsEventModalOpen} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} onSendMessage={handleSendMessage} onDeleteMessage={handleDeleteMessage} />
+            <CalendarEngine activeChat={activeChat} currentTheme={currentTheme} palette={palette} currentCalendarDate={currentCalendarDate} setCurrentCalendarDate={setCurrentCalendarDate} selectedEventDate={selectedEventDate} setSelectedEventDate={setSelectedEventDate} isDayDetailOpen={isDayDetailOpen} setIsDayDetailOpen={setIsDayDetailOpen} isEventModalOpen={isEventModalOpen} setIsEventModalOpen={setIsEventModalOpen} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} onSendMessage={handleSendMessage} onDeleteMessage={handleDeleteMessage} onEditMessage={handleEditMessage} />
           ) : activeChat?.mode === 'alarm' ? (
             <AlarmEngine activeChat={activeChat} currentTheme={currentTheme} onUpdateAlarms={updateAlarms} />
           ) : activeChat?.mode === 'call' ? (
