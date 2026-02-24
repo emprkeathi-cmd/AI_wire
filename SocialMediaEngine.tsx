@@ -51,8 +51,10 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
 
   return (
     <div className="h-full flex flex-col bg-[#02040a]">
-      {/* Header Container - Border removed as requested */}
-      <div className="shrink-0 p-4 flex justify-end bg-black/20 backdrop-blur-md z-[100]">
+      {/* 1. Removed bg-black/20 and backdrop-blur-md so the top is seamless.
+          2. The button remains 'fixed' at top-10 and right-6.
+      */}
+      <div className="shrink-0 p-4 flex justify-end z-[100]">
         <button 
           onClick={handleGiveGetSignal}
           disabled={isSendingSignal}
@@ -69,6 +71,7 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
             <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white">Social Management Hub</h2>
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Node ID: {activeChat.receiverId}</p>
           </div>
+          {/* ... mapping posts ... */}
 
           {posts.length > 0 ? (
             posts.map((post) => (
