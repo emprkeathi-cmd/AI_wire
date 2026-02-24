@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Mic, Volume2, Settings, X, Activity, 
@@ -38,6 +37,8 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
   const animationFrameRef = useRef<number | null>(null);
   const isPlayingAudioRef = useRef(false);
   const sessionActiveRef = useRef(false);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+  const lastProcessedMsgIdRef = useRef<string | null>(null);
 
   // VAD Internal State Refs
   const silenceTimerRef = useRef<number | null>(null);
@@ -51,6 +52,10 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
 
   const cleanup = useCallback(() => {
     sessionActiveRef.current = false;
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.pause();
+      audioPlayerRef.current = null;
+    }
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -81,22 +86,18 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
   const analyze = useCallback(() => {
     if (!sessionActiveRef.current || !analyserRef.current) return;
 
-    // Browser policy check
     if (audioContextRef.current?.state === 'suspended') {
       audioContextRef.current.resume();
     }
 
     const currentStatus = statusRef.current;
 
-    // CRITICAL: Immediately stop EVERYTHING if we are processing or playing
-    // This ensures no volume bars or logic runs during transmission
     if (currentStatus === 'processing' || currentStatus === 'playing' || currentStatus === 'idle') {
       setCurrentVolume(0);
       animationFrameRef.current = requestAnimationFrame(analyze);
       return;
     }
 
-    // Skip if AI is currently playing back audio (double check)
     if (isPlayingAudioRef.current) {
       setCurrentVolume(0);
       animationFrameRef.current = requestAnimationFrame(analyze);
@@ -114,9 +115,7 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
 
     const currentThreshold = thresholdRef.current;
 
-    // VAD Logic
     if (normalizedVolume > currentThreshold) {
-      // 1. Noise Detected
       if (silenceTimerRef.current) {
         window.clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
@@ -128,7 +127,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
         startRecordingAction();
       }
     } else {
-      // 2. Silence Detected
       if (currentStatus === 'recording') {
         if (!silenceTimerRef.current) {
           silenceStartTimeRef.current = Date.now();
@@ -137,7 +135,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
           }, silenceTimeoutRef.current);
         }
 
-        // Update progress visual
         if (silenceStartTimeRef.current) {
           const elapsed = Date.now() - silenceStartTimeRef.current;
           setSilenceProgress(Math.min(elapsed / silenceTimeoutRef.current, 1));
@@ -175,8 +172,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
       mediaRecorder.onstop = () => {
         if (!sessionActiveRef.current) return;
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        
-        // At this point we are ALREADY in 'processing' state set by stopRecordingAction
         onSendMessage(undefined, 'audio', { mode: 'call' }, blob);
         chunksRef.current = [];
       };
@@ -202,23 +197,15 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
   };
 
   const stopRecordingAction = () => {
-    // 1. SET STATUS TO PROCESSING IMMEDIATELY
-    // This stops the analyze() loop's volume logic and UI orb pulses
     setStatus('processing');
-    
-    // 2. DISABLE MIC TRACKS IMMEDIATELY
     if (streamRef.current) {
       streamRef.current.getAudioTracks().forEach(track => {
         track.enabled = false;
       });
     }
-
-    // 3. STOP RECORDER
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
-    
-    // 4. RESET UI STATE
     silenceStartTimeRef.current = null;
     setSilenceProgress(0);
     setCurrentVolume(0);
@@ -227,28 +214,29 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
   const handleAudioResponse = async (audioLink: string, shouldEnd: boolean) => {
     if (!sessionActiveRef.current) return;
     
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.pause();
+      audioPlayerRef.current = null;
+    }
+
     setStatus('playing');
     isPlayingAudioRef.current = true;
     
-    // Ensure mic remains disabled during remote stream buffering/playback
     if (streamRef.current) {
       streamRef.current.getAudioTracks().forEach(track => track.enabled = false);
     }
 
     const audio = new Audio(audioLink);
-    
-    // Enable cross-origin if your audio host requires it
+    audioPlayerRef.current = audio;
     audio.crossOrigin = "anonymous"; 
 
-    audio.oncanplaythrough = () => {
-      // Audio buffered enough to start
-      audio.play().catch(e => {
-        console.error("Playback failed", e);
-        resumeListening();
-      });
+    audio.onplay = () => {
+      setStatus('playing');
+      isPlayingAudioRef.current = true;
     };
 
     audio.onended = () => {
+      audioPlayerRef.current = null;
       isPlayingAudioRef.current = false;
       if (shouldEnd) {
         cleanup();
@@ -259,12 +247,21 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
 
     audio.onerror = (e) => {
       console.error("External Link Error:", e);
+      audioPlayerRef.current = null;
       isPlayingAudioRef.current = false;
       resumeListening();
     };
+
+    try {
+      await audio.play();
+    } catch (e) {
+      console.error("Playback failed", e);
+      audioPlayerRef.current = null;
+      isPlayingAudioRef.current = false;
+      resumeListening();
+    }
   };
 
-  // Helper to DRY up the code
   const resumeListening = () => {
     if (streamRef.current && sessionActiveRef.current) {
       streamRef.current.getAudioTracks().forEach(track => track.enabled = true);
@@ -272,15 +269,15 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
     }
   };
 
-  // Update the Message Monitor useEffect for link handling
   useEffect(() => {
     const lastMsg = activeChat.messages[activeChat.messages.length - 1];
-    if (lastMsg?.role === 'assistant') {
+    if (lastMsg?.role === 'assistant' && lastMsg.id !== lastProcessedMsgIdRef.current) {
+      lastProcessedMsgIdRef.current = lastMsg.id;
+      
       try {
         let data = JSON.parse(lastMsg.content);
         if (Array.isArray(data)) data = data[0];
         
-        // Handle Call Initiation/Termination
         if (data.call === true && statusRef.current === 'idle') {
           startCallSession();
         } else if (data.call === false) {
@@ -288,17 +285,14 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
           return;
         }
 
-        // Handle Audio Link
         if (data.audio && typeof data.audio === 'string' && data.audio.startsWith('http')) {
           handleAudioResponse(data.audio, data.signal === 'end');
         } else {
-          // Fallback if message is just text or invalid audio
           if (statusRef.current === 'processing' && sessionActiveRef.current) {
             resumeListening();
           }
         }
       } catch (e) {
-        // Not valid JSON
         if (statusRef.current === 'processing' && sessionActiveRef.current) {
           resumeListening();
         }
@@ -312,7 +306,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 h-full overflow-y-auto custom-scrollbar relative bg-[#02040a]">
-      {/* Settings HUD */}
       <div className="absolute top-4 right-4 z-50">
         <button 
           onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -355,7 +348,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
         </div>
       )}
 
-      {/* Main UI */}
       <div className="flex flex-col items-center gap-12">
         <div className="flex flex-col items-center gap-2">
            {error ? (
@@ -373,7 +365,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
            <p className="text-[9px] font-bold text-slate-700 uppercase tracking-widest">{status}</p>
         </div>
 
-        {/* The Orb */}
         <div className="relative">
            {status !== 'idle' && status !== 'processing' && status !== 'playing' && (
              <div className="absolute inset-0 -m-20 pointer-events-none">
@@ -392,7 +383,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
                `bg-emerald-900/20 border-2 border-emerald-500/40 shadow-[0_0_80px_rgba(16,185,129,0.3)]`
              }`}
            >
-              {/* Silence Progress Ring */}
               {status === 'recording' && silenceProgress > 0 && (
                 <div className="absolute inset-0 pointer-events-none">
                   <svg className="w-full h-full -rotate-90">
@@ -430,7 +420,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
            </button>
         </div>
 
-        {/* Volume HUD */}
         <div className="w-80 space-y-4">
            <div className="flex justify-between items-end px-2">
              <div className="flex flex-col">
@@ -448,7 +437,6 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
            </div>
         </div>
 
-        {/* Network Info */}
         <div className="text-center space-y-2 opacity-30">
            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic flex items-center justify-center gap-2">
              <Wifi size={12} /> Neural Stream v2.5
@@ -461,5 +449,3 @@ export const CallEngine: React.FC<CallEngineProps> = ({ activeChat, currentTheme
     </div>
   );
 };
-
-const copyToClipboard = async (text: string) => { try { await navigator.clipboard.writeText(text); if (navigator.vibrate) navigator.vibrate(50); } catch (err) {} };
