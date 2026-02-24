@@ -103,7 +103,7 @@ export const NewsEngine: React.FC<NewsEngineProps> = ({ activeChat, currentTheme
       <button 
         onClick={handleGiveGetSignal}
         disabled={isSendingSignal}
-        className={`fixed top-15 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`fixed top-18 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> 
         {isSendingSignal ? 'Syncing...' : 'Sync'}
