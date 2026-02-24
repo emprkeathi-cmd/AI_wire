@@ -50,7 +50,7 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#0f121d]">
+    <div className="h-full flex flex-col bg-[#02040a]">
       {/* Header Container - Border removed as requested */}
       <div className="shrink-0 p-4 flex justify-end bg-black/20 backdrop-blur-md z-[100]">
         <button 
