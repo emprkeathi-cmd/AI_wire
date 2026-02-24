@@ -390,20 +390,6 @@ const App: React.FC = () => {
   const handleUpdateBlueprint = (msgId: string, newContent: string) => { setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.map(m => m.id === msgId ? { ...m, content: newContent } : m) } : c)); };
   const handleDeleteMessage = (msgId: string) => { setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.filter(m => m.id !== msgId) } : c)); };
   
-  const handleEditMessage = (id: string, newContent: string, newCategoryId: string) => {
-    setChats(prev => prev.map(c => c.id === activeChatId ? {
-      ...c,
-      messages: c.messages.map(m => m.id === id ? { ...m, content: newContent, categoryId: newCategoryId } : m)
-    } : c));
-  };
-
-  const handleEditTask = (id: string, updates: any) => {
-    setChats(prev => prev.map(c => c.id === activeChatId ? {
-      ...c,
-      messages: c.messages.map(m => m.id === id ? { ...m, ...updates } : m)
-    } : c));
-  };
-
   const handleUpdateNewsMessage = (msgId: string, updates: Partial<Message>) => {
     setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: c.messages.map(m => m.id === msgId ? { ...m, ...updates } : m) } : c));
   };
@@ -538,25 +524,36 @@ const App: React.FC = () => {
           <div className="flex items-center gap-1"><button onClick={() => { setEditingChat(activeChat ? JSON.parse(JSON.stringify(activeChat)) : null); setIsChatSettingsOpen(true); }} className="p-2.5 text-slate-400 hover:bg-slate-800 rounded-xl transition-all"><MoreVertical size={20} /></button></div>
         </header>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative">
           {!activeChatId ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-6 text-center"><Logo size={120} className="animate-pulse" color={currentTheme.hex} /><div><h3 className={`text-2xl font-black text-white italic tracking-tighter ${appStyle === 'cyber' ? 'font-mono uppercase glitch-text' : ''}`}>AI wire</h3><p className="max-w-[240px] mx-auto text-sm text-slate-500 mt-2 font-medium uppercase tracking-widest">Select Node for Sync</p></div></div>
-          ) : activeChat?.mode === 'blueprint' ? (
-            <BlueprintEngine activeChat={activeChat} onDeploy={(title, content, assets) => handleSendMessage(content, 'blueprint', { title, assets })} onUpdate={handleUpdateBlueprint} onDelete={handleDeleteMessage} />
-          ) : activeChat?.mode === 'todo' ? (
-            <TodoEngine activeChat={activeChat} currentTheme={currentTheme} palette={palette} isTodoModalOpen={isTodoModalOpen} setIsTodoModalOpen={setIsTodoModalOpen} todoFilter={todoFilter} setTodoFilter={setTodoFilter} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} todoNotes={todoNotes} setTodoNotes={setTodoNotes} todoReminder={todoReminder} setTodoReminder={setTodoReminder} onSendMessage={handleSendMessage} onToggleTaskStatus={toggleTaskStatus} onDeleteTask={deleteTask} onEditTask={handleEditTask} />
-          ) : activeChat?.mode === 'calendar' ? (
-            <CalendarEngine activeChat={activeChat} currentTheme={currentTheme} palette={palette} currentCalendarDate={currentCalendarDate} setCurrentCalendarDate={setCurrentCalendarDate} selectedEventDate={selectedEventDate} setSelectedEventDate={setSelectedEventDate} isDayDetailOpen={isDayDetailOpen} setIsDayDetailOpen={setIsDayDetailOpen} isEventModalOpen={isEventModalOpen} setIsEventModalOpen={setIsEventModalOpen} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} onSendMessage={handleSendMessage} onDeleteMessage={handleDeleteMessage} onEditMessage={handleEditMessage} />
-          ) : activeChat?.mode === 'alarm' ? (
-            <AlarmEngine activeChat={activeChat} currentTheme={currentTheme} onUpdateAlarms={updateAlarms} />
-          ) : activeChat?.mode === 'call' ? (
-            <CallEngine activeChat={activeChat} currentTheme={currentTheme} onUpdateSettings={updateCallSettings} onSendMessage={handleSendMessage} />
-          ) : activeChat?.mode === 'news' ? (
-            <NewsEngine activeChat={activeChat} currentTheme={currentTheme} onUpdateMessage={handleUpdateNewsMessage} onDeleteMessage={handleDeleteMessage} />
-          ) : activeChat?.mode === 'social' ? (
-            <SocialMediaEngine activeChat={activeChat} currentTheme={currentTheme} onSendMessage={handleSendMessage} onDeleteMessage={handleDeleteMessage} />
           ) : (
-            <ChatEngine activeChat={activeChat} currentTheme={currentTheme} palette={palette} isTyping={isTyping} inputText={inputText} setInputText={setInputText} isRecording={isRecording} recordingDuration={recordingDuration} audioBlob={audioBlob} holdProgress={holdProgress} lastAssistantMsgIndex={lastAssistantMsgIndex} onSendMessage={handleSendMessage} onReaction={handleReaction} onFileUpload={handleFileUpload} onMicMouseDown={handleMicMouseDown} onMicMouseUp={handleMicMouseUp} onCancelRecording={cancelRecording} onStopRecording={stopRecording} messagesEndRef={messagesEndRef} chatFileInputRef={chatFileInputRef} />
+            <div className="h-full relative">
+              <div className={activeChat?.mode === 'blueprint' ? 'h-full' : 'hidden'}>
+                <BlueprintEngine activeChat={activeChat!} onDeploy={(title, content, assets) => handleSendMessage(content, 'blueprint', { title, assets })} onUpdate={handleUpdateBlueprint} onDelete={handleDeleteMessage} />
+              </div>
+              <div className={activeChat?.mode === 'todo' ? 'h-full' : 'hidden'}>
+                <TodoEngine activeChat={activeChat!} currentTheme={currentTheme} palette={palette} isTodoModalOpen={isTodoModalOpen} setIsTodoModalOpen={setIsTodoModalOpen} todoFilter={todoFilter} setTodoFilter={setTodoFilter} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} todoNotes={todoNotes} setTodoNotes={setTodoNotes} todoReminder={todoReminder} setTodoReminder={setTodoReminder} onSendMessage={handleSendMessage} onToggleTaskStatus={toggleTaskStatus} onDeleteTask={deleteTask} />
+              </div>
+              <div className={activeChat?.mode === 'calendar' ? 'h-full' : 'hidden'}>
+                <CalendarEngine activeChat={activeChat!} currentTheme={currentTheme} palette={palette} currentCalendarDate={currentCalendarDate} setCurrentCalendarDate={setCurrentCalendarDate} selectedEventDate={selectedEventDate} setSelectedEventDate={setSelectedEventDate} isDayDetailOpen={isDayDetailOpen} setIsDayDetailOpen={setIsDayDetailOpen} isEventModalOpen={isEventModalOpen} setIsEventModalOpen={setIsEventModalOpen} selectedCategoryId={selectedCategoryId} setSelectedCategoryId={setSelectedCategoryId} inputText={inputText} setInputText={setInputText} onSendMessage={handleSendMessage} onDeleteMessage={handleDeleteMessage} />
+              </div>
+              <div className={activeChat?.mode === 'alarm' ? 'h-full' : 'hidden'}>
+                <AlarmEngine activeChat={activeChat!} currentTheme={currentTheme} onUpdateAlarms={updateAlarms} />
+              </div>
+              <div className={activeChat?.mode === 'call' ? 'h-full' : 'hidden'}>
+                <CallEngine activeChat={activeChat!} currentTheme={currentTheme} onUpdateSettings={updateCallSettings} onSendMessage={handleSendMessage} />
+              </div>
+              <div className={activeChat?.mode === 'news' ? 'h-full' : 'hidden'}>
+                <NewsEngine activeChat={activeChat!} currentTheme={currentTheme} onUpdateMessage={handleUpdateNewsMessage} onDeleteMessage={handleDeleteMessage} />
+              </div>
+              <div className={activeChat?.mode === 'social' ? 'h-full' : 'hidden'}>
+                <SocialMediaEngine activeChat={activeChat!} currentTheme={currentTheme} onSendMessage={handleSendMessage} onDeleteMessage={handleDeleteMessage} />
+              </div>
+              <div className={(!activeChat?.mode || ['chat', 'neural_link'].includes(activeChat.mode)) ? 'h-full' : 'hidden'}>
+                <ChatEngine activeChat={activeChat!} currentTheme={currentTheme} palette={palette} isTyping={isTyping} inputText={inputText} setInputText={setInputText} isRecording={isRecording} recordingDuration={recordingDuration} audioBlob={audioBlob} holdProgress={holdProgress} lastAssistantMsgIndex={lastAssistantMsgIndex} onSendMessage={handleSendMessage} onReaction={handleReaction} onFileUpload={handleFileUpload} onMicMouseDown={handleMicMouseDown} onMicMouseUp={handleMicMouseUp} onCancelRecording={cancelRecording} onStopRecording={stopRecording} messagesEndRef={messagesEndRef} chatFileInputRef={chatFileInputRef} />
+              </div>
+            </div>
           )}
         </div>
       </main>
