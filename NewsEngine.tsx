@@ -99,11 +99,11 @@ export const NewsEngine: React.FC<NewsEngineProps> = ({ activeChat, currentTheme
 
   return (
     <div className="h-full flex flex-col bg-[#05060a]">
-      {/* THE SYNC BUTTON */}
+      {/* THE SYNC BUTTON - Nudged down slightly from top-10 to top-12 */}
       <button 
         onClick={handleGiveGetSignal}
         disabled={isSendingSignal}
-        className={`fixed top-10 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`fixed top-12 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> 
         {isSendingSignal ? 'Syncing...' : 'Sync'}
