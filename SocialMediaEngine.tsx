@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   Check, X, MessageSquare, Send, ImageIcon, 
-  Clock, Share2, MoreHorizontal, Activity, Trash2
+  Clock, Share2, MoreHorizontal, Activity, Trash2, Zap
 } from 'lucide-react';
 import { Chat, Message } from './types';
+import { sendMessageToN8N } from './services/n8nService';
 
 interface SocialMediaEngineProps {
   activeChat: Chat;
@@ -14,8 +15,22 @@ interface SocialMediaEngineProps {
 
 export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat, currentTheme, onSendMessage, onDeleteMessage }) => {
   const [comments, setComments] = useState<Record<string, string>>({});
+  const [isSendingSignal, setIsSendingSignal] = useState(false);
 
   const posts = activeChat.messages.filter(m => m.type === 'social_post' || (m.role === 'assistant' && (m.content.includes('http') || m.title)));
+
+  const handleGiveSignal = async () => {
+    if (!activeChat.webhookUrl || isSendingSignal) return;
+    setIsSendingSignal(true);
+    try {
+      await sendMessageToN8N(activeChat.webhookUrl, 'give', 'text');
+      if (navigator.vibrate) navigator.vibrate(50);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSendingSignal(false);
+    }
+  };
 
   const handleAction = (post: Message, reaction: '✅' | '❌') => {
     const comment = comments[post.id] || "";
@@ -42,9 +57,19 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
   };
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar bg-[#02040a] p-4 sm:p-10">
-      <div className="max-w-2xl mx-auto space-y-12 pb-32">
-        <div className="text-center space-y-2">
+    <div className="h-full flex flex-col bg-[#02040a]">
+      <div className="shrink-0 p-4 flex justify-end border-b border-white/5 bg-black/20 backdrop-blur-md z-10">
+         <button 
+           onClick={handleGiveSignal}
+           disabled={isSendingSignal}
+           className={`p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest border border-white/10 ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
+         >
+           <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> {isSendingSignal ? 'Sending...' : 'Give Signal'}
+         </button>
+      </div>
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-10">
+        <div className="max-w-2xl mx-auto space-y-12 pb-32">
+          <div className="text-center space-y-2">
            <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white">Social Management Hub</h2>
            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Node ID: {activeChat.receiverId}</p>
         </div>
@@ -122,4 +147,3 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
       </div>
     </div>
   );
-};
