@@ -49,16 +49,19 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
     if (navigator.vibrate) navigator.vibrate(40);
   };
 
-  return (
+return (
     <div className="h-full flex flex-col bg-[#02040a]">
-      {/* 1. Removed the mt-[15vh] gap completely to fix the "ugly black space".
-          2. Positioned the button 'fixed' and higher up (top-6).
+      {/* 1. Removed 'border-b' to kill the line.
+          2. Kept bg-black/20 for the subtle glass look, but removed the margin.
       */}
-      <div className="shrink-0 p-4 flex justify-end border-b border-white/5 bg-black/20 backdrop-blur-md z-[100]">
+      <div className="shrink-0 p-4 flex justify-end bg-black/20 backdrop-blur-md z-[100]">
         <button 
           onClick={handleGiveGetSignal}
           disabled={isSendingSignal}
-          className={`fixed top-6 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
+          {/* Changed 'top-6' to 'top-10' to move it down slightly.
+              Change 10 to 12 if you want it even lower.
+          */}
+          className={`fixed top-10 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> 
           {isSendingSignal ? 'Syncing...' : 'Sync'}
