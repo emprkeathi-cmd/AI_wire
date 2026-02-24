@@ -71,8 +71,7 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
 
   return (
     <div className="h-full flex flex-col bg-[#02040a]">
-      <div className="shrink-0 p-4 flex justify-end gap-2 border-b border-white/5 bg-black/20 backdrop-blur-md z-10">
-         <button 
+        <div className="shrink-0 mt-20 p-4 flex justify-end gap-2 border-b border-white/5 bg-black/20 backdrop-blur-md z-50">          
            onClick={handleGiveGetSignal}
            disabled={isSendingSignal}
            className={`p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest border border-white/10 ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
