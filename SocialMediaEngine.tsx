@@ -51,12 +51,14 @@ export const SocialMediaEngine: React.FC<SocialMediaEngineProps> = ({ activeChat
 
   return (
     <div className="h-full flex flex-col bg-[#02040a]">
-      {/* HEADER: Single Sync Button positioned higher (15% from top) */}
-      <div className="shrink-0 mt-[15vh] p-4 flex justify-end border-b border-white/5 bg-black/20 backdrop-blur-md z-[100]">
+      {/* 1. Removed mt-[15vh] so the header bar stays at the top.
+          2. The button is now 'fixed' at top-12 (higher up) and right-6. 
+      */}
+      <div className="shrink-0 p-4 flex justify-end border-b border-white/5 bg-black/20 backdrop-blur-md z-[100]">
         <button 
           onClick={handleGiveGetSignal}
           disabled={isSendingSignal}
-          className={`p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`fixed top-12 right-6 p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 font-black uppercase text-[10px] tracking-widest border border-white/10 z-[110] ${isSendingSignal ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Zap size={14} className={isSendingSignal ? 'animate-spin' : ''} /> 
           {isSendingSignal ? 'Syncing...' : 'Sync'}
