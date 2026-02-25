@@ -80,7 +80,7 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
               {msg.role === 'system' ? (
                 <div className="w-full text-center py-3"><span className="bg-slate-900 text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] px-4 py-1.5 rounded-full border border-slate-800">{msg.content}</span></div>
               ) : (
-                <div className={`max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}`}>
+                <div className={`max-w-[85%] lg:max-w-[75%] px-5 py-4 rounded-[2rem] shadow-2xl relative group transition-all select-text ${msg.role === 'user' ? `bg-gradient-to-br ${currentTheme.from} ${currentTheme.to} text-white rounded-tr-none` : 'bg-slate-900 border border-slate-800/50 text-slate-100 rounded-tl-none'}`}>
                   {msg.type === 'file' && <div className="flex items-center gap-3 mb-2 p-3 bg-white/10 rounded-2xl border border-white/10"><FileIcon size={18} className="text-white/60" /><span className="text-xs font-bold truncate">{msg.content}</span></div>}
                   {msg.type === 'audio' && (
                     <div className="flex flex-col gap-1 mb-2">
