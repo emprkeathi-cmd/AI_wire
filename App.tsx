@@ -285,7 +285,7 @@ const App: React.FC = () => {
             if (newMessages.length > 0 && "Notification" in window && Notification.permission === "granted") {
               new Notification(`[${chat.name}] New Signal`, {
                 body: rawMsg.length > 100 ? rawMsg.substring(0, 97) + "..." : rawMsg,
-                icon: chat.icon || 'https://cdn-icons-png.flaticon.com/512/2103/2103830.png'
+                icon: chat.icon || 'https://raw.githubusercontent.com/emprkeathi-cmd/assets_Ai-Wire/main/web-app-manifest-512x512.png'
               });
             }
 
