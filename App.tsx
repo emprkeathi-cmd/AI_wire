@@ -235,11 +235,14 @@ const App: React.FC = () => {
       const explicitCatValue = data.Category || data.category || data.Classification || data.classification;
       const explicitContent = data.Appointment || data.appointment || data.Content || data.content || data.Text || data.text;
       const action = String(data.WHAT || data.what || 'create').toLowerCase();
-      if (explicitCatValue && explicitContent) {
+      const targetId = data.id || data.eventId || data.Id || data.ID;
+      
+      if (targetId || (explicitCatValue && explicitContent)) {
         const cat = findCategory(String(explicitCatValue));
-        if (cat) {
-          if (action === 'delete') deletions.push({ content: String(explicitContent), date: dateStr, categoryId: cat.id, newStatus: 'deleted' });
-          else additions.push({ id: `expl-${Date.now()}`, role: 'assistant', content: String(explicitContent), date: dateStr, categoryId: cat.id, type: 'event', timestamp: Date.now() });
+        if (action === 'delete') {
+          deletions.push({ id: targetId, content: explicitContent ? String(explicitContent) : '', date: dateStr, categoryId: cat?.id, newStatus: 'deleted' });
+        } else if (cat) {
+          additions.push({ id: `expl-${Date.now()}`, role: 'assistant', content: String(explicitContent), date: dateStr, categoryId: cat.id, type: 'event', timestamp: Date.now() });
         }
       }
     }
@@ -313,7 +316,11 @@ const App: React.FC = () => {
                       return m;
                     });
                   } else {
-                    filteredMessages = filteredMessages.filter(m => !(m.date === del.date && m.categoryId === del.categoryId && normalizeString(m.content) === normDelContent));
+                    filteredMessages = filteredMessages.filter(m => {
+                      if (del.id && m.id === del.id) return false;
+                      if (!del.id && m.date === del.date && m.categoryId === del.categoryId && normalizeString(m.content) === normDelContent) return false;
+                      return true;
+                    });
                   }
                 });
                 return { ...c, messages: filteredMessages };
