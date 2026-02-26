@@ -198,16 +198,17 @@ const App: React.FC = () => {
         const catName = jsonData.category || jsonData.Category;
         const cat = findCategory(catName);
         const title = jsonData.title || jsonData.Title || jsonData.content || jsonData.Content || jsonData.appointment || jsonData.Appointment;
-        if (cat && title) {
+        const targetId = jsonData.id || jsonData.taskId || jsonData.Id || jsonData.ID;
+        if (targetId || (cat && title)) {
           if (cmd === 'save' || cmd === 'create') {
-            additions.push({ id: `todo-j-${Date.now()}`, role: 'assistant', type: 'task', content: String(title), categoryId: cat.id, todoStatus: 'active', todoReminder: jsonData.reminder === 'positive' || jsonData.reminder === true, todoNotes: String(jsonData.notes || ''), timestamp: Date.now() });
-            return { additions, deletions, debug: { ...debugInfo, interpreted: { type: 'todo_json_save', category: cat.name, title } } };
+            additions.push({ id: `todo-j-${Date.now()}`, role: 'assistant', type: 'task', content: String(title || ''), categoryId: cat?.id || chat.categories[0]?.id, todoStatus: 'active', todoReminder: jsonData.reminder === 'positive' || jsonData.reminder === true, todoNotes: String(jsonData.notes || ''), timestamp: Date.now() });
+            return { additions, deletions, debug: { ...debugInfo, interpreted: { type: 'todo_json_save', category: cat?.name, title } } };
           } else if (cmd === 'delete') {
-            deletions.push({ content: String(title), categoryId: cat.id, mode: 'todo', newStatus: 'deleted' });
-            return { additions, deletions, debug: { ...debugInfo, interpreted: { type: 'todo_json_delete', category: cat.name, title } } };
+            deletions.push({ id: targetId, content: title ? String(title) : '', categoryId: cat?.id, mode: 'todo', newStatus: 'deleted' });
+            return { additions, deletions, debug: { ...debugInfo, interpreted: { type: 'todo_json_delete', id: targetId, category: cat?.name, title } } };
           } else if (cmd === 'done' || cmd === 'complete') {
-            deletions.push({ content: String(title), categoryId: cat.id, mode: 'todo', newStatus: 'done' });
-            return { additions, deletions, debug: { ...debugInfo, interpreted: { type: 'todo_json_done', category: cat.name, title } } };
+            deletions.push({ id: targetId, content: title ? String(title) : '', categoryId: cat?.id, mode: 'todo', newStatus: 'done' });
+            return { additions, deletions, debug: { ...debugInfo, interpreted: { type: 'todo_json_done', id: targetId, category: cat?.name, title } } };
           }
         }
       }
@@ -301,7 +302,16 @@ const App: React.FC = () => {
                 deletions.forEach(del => {
                   const normDelContent = normalizeString(del.content);
                   if (del.mode === 'todo') {
-                    filteredMessages = filteredMessages.map(m => (m.type === 'task' && m.categoryId === del.categoryId && normalizeString(m.content) === normDelContent) ? { ...m, todoStatus: del.newStatus || 'deleted' } : m);
+                    filteredMessages = filteredMessages.map(m => {
+                      if (m.type === 'task') {
+                        if (del.id && m.id === del.id) {
+                          return { ...m, todoStatus: del.newStatus || 'deleted' };
+                        } else if (!del.id && m.categoryId === del.categoryId && normalizeString(m.content) === normDelContent) {
+                          return { ...m, todoStatus: del.newStatus || 'deleted' };
+                        }
+                      }
+                      return m;
+                    });
                   } else {
                     filteredMessages = filteredMessages.filter(m => !(m.date === del.date && m.categoryId === del.categoryId && normalizeString(m.content) === normDelContent));
                   }
@@ -377,7 +387,7 @@ const App: React.FC = () => {
     }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       role: 'user',
       content: finalType === 'audio' ? 'Voice Message' : finalType === 'file' ? (fileToUse?.name || String(messageContent)) : String(messageContent),
       type: finalType,
@@ -406,8 +416,8 @@ const App: React.FC = () => {
         let metadata: any = extra || {};
         if (finalType === 'audio') payload = finalBlob!;
         else if (finalType === 'file' && fileToUse) { payload = fileToUse.name; metadata = { ...metadata, files: [{ blob: fileToUse, name: fileToUse.name }] }; }
-        else if (finalType === 'event') metadata = { ...metadata, date: userMessage.date, categoryId: userMessage.categoryId, categoryName: targetChat.categories.find(c => c.id === userMessage.categoryId)?.name };
-        else if (finalType === 'task') metadata = { ...metadata, todoStatus: userMessage.todoStatus, todoReminder: userMessage.todoReminder, todoNotes: userMessage.todoNotes, categoryId: userMessage.categoryId, categoryName: targetChat.categories.find(c => c.id === userMessage.categoryId)?.name };
+        else if (finalType === 'event') metadata = { ...metadata, id: userMessage.id, date: userMessage.date, categoryId: userMessage.categoryId, categoryName: targetChat.categories.find(c => c.id === userMessage.categoryId)?.name };
+        else if (finalType === 'task') metadata = { ...metadata, id: userMessage.id, todoStatus: userMessage.todoStatus, todoReminder: userMessage.todoReminder, todoNotes: userMessage.todoNotes, categoryId: userMessage.categoryId, categoryName: targetChat.categories.find(c => c.id === userMessage.categoryId)?.name };
         else if (finalType === 'blueprint') metadata = { ...metadata, title: extra.title, assets: extra.assets };
         const response = await sendMessageToN8N(targetChat.webhookUrl, payload, finalType, metadata);
         const assistantMessage: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: response, timestamp: Date.now() };
