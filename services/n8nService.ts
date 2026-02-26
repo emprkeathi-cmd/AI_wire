@@ -31,6 +31,14 @@ export const sendMessageToN8N = async (
       formData.append('message', content);
     }
 
+    if (metadata) {
+      Object.keys(metadata).forEach(key => {
+        if (key !== 'files' && key !== 'originalContent') {
+          formData.append(key, typeof metadata[key] === 'object' ? JSON.stringify(metadata[key]) : String(metadata[key]));
+        }
+      });
+    }
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
       body: formData,
