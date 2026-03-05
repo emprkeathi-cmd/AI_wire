@@ -49,13 +49,13 @@ export const Tutorial: React.FC<TutorialProps> = ({ activeStep, onNext, onClose,
       case 'settings':
         return {
           title: "System Parameters",
-          text: "Here you can adjust the HUD style and neural hues. Try switching between Sleek and Cyber modes!",
+          text: "Here you can adjust the HUD style and neural hues. Try switching between colors and or Sleek and Cyber modes!",
           button: "Understood"
         };
       case 'deploy':
         return {
           title: "Deploying Agents",
-          text: "This is where you create new Nodes. Each Node is a specialized AI agent for different protocols.",
+          text: "This is where you add new Nodes. Each Node is a specialized Interface for different Workflows.",
           button: "Show me more"
         };
       case 'engines':
@@ -67,7 +67,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ activeStep, onNext, onClose,
       case 'github':
         return {
           title: "Open Source Grid",
-          text: "AI Wire is an open project. You can contribute or build your own engines by grabbing the source from GitHub!",
+          text: "AI Wire is an open project. You can contribute or build your own engines/Interfaces by grabbing the source from GitHub!",
           button: "Got it",
           showGithub: true
         };
@@ -138,7 +138,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ activeStep, onNext, onClose,
 
             {content.showGithub && (
               <a 
-                href="https://github.com" 
+                href="https://github.com/emprkeathi-cmd?tab=repositories" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-xs text-slate-400 hover:text-white mb-4 transition-colors"
