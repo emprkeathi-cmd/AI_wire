@@ -6,7 +6,7 @@ export const getModuleDocumentation = (mode: string | undefined, categories?: an
       return `// Available Categories: ${categoryList}
 {
   "command": "create", // Options: "create", "delete"
-  "category": "Meeting", // Must match one of your chat's categories
+  "category": "Obligations", // Must match one of your chat's categories
   "appointment": "Project sync",
   "date": "2026-03-05" // YYYY-MM-DD
 }`;
@@ -14,7 +14,7 @@ export const getModuleDocumentation = (mode: string | undefined, categories?: an
       return `// Available Categories: ${categoryList}
 {
   "command": "save", // Options: "create", "delete", "done"
-  "category": "Work", // Must match one of your chat's categories
+  "category": "Today", // Must match one of your chat's categories
   "title": "Finish report",
   "notes": "Include the Q1 data",
   "reminder": true // Optional: true/false
