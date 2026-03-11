@@ -49,19 +49,19 @@ export const Tutorial: React.FC<TutorialProps> = ({ activeStep, onNext, onClose,
       case 'settings':
         return {
           title: "System Parameters",
-          text: "Here you can adjust the HUD style and neural hues. Try switching between Sleek and Cyber modes!",
+          text: "Here you can adjust the HUD style. Try switching between Sleek and Cyber modes!",
           button: "Understood"
         };
       case 'deploy':
         return {
           title: "Deploying Agents",
-          text: "This is where you create new Nodes. Each Node is a specialized AI agent for different protocols.",
+          text: "This is where you can add new chat/modules. Each chat/module is a specialized AI agent Interface.",
           button: "Show me more"
         };
       case 'engines':
         return {
           title: "Neural Engines",
-          text: "From Temporal Nodes (Calendar) to Task Grids (Todo), we have an engine for every workflow.",
+          text: "From Temporal Nodes (Calendar) to Task Grids (Todo), we have a chat/module for every workflow.",
           button: "Next"
         };
       case 'github':
@@ -74,7 +74,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ activeStep, onNext, onClose,
       case 'chat_opened':
         return {
           title: "Node Configuration",
-          text: "Every Node has its own topology. You can change the alias, avatar, and even connect external webhooks here.",
+          text: "Every chat/module has its own uniquely generated HTTPS link. You can change the alias, avatar, and even connect external webhooks in its settings accessible by the 3 dots.",
           button: "Finish Tutorial"
         };
       default:
@@ -138,7 +138,7 @@ export const Tutorial: React.FC<TutorialProps> = ({ activeStep, onNext, onClose,
 
             {content.showGithub && (
               <a 
-                href="https://github.com" 
+                href="https://github.com/emprkeathi-cmd/AI_wire" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-xs text-slate-400 hover:text-white mb-4 transition-colors"
