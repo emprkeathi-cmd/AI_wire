@@ -41,7 +41,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose, activeCha
           <div className="space-y-4">
             <label className="block text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Neural Training Resource</label>
             <a 
-              href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
+              href="https://youtu.be/Nn6Jq-AR80M" 
               target="_blank" 
               rel="noopener noreferrer"
               className={`flex items-center justify-between p-6 bg-slate-900 border border-slate-800 hover:border-indigo-500/40 rounded-[2rem] group transition-all ${appStyle === 'cyber' ? 'rounded-none' : ''}`}
