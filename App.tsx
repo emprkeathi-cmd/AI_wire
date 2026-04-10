@@ -33,7 +33,6 @@ import { useSignalProcessor } from '@/src/hooks/useSignalProcessor';
 import { InfoModal } from '@/src/components/modals/InfoModal';
 import { paletteConfigs } from '@/src/constants/palettes';
 import { copyToClipboard } from '@/src/utils/clipboard';
-import Dexie from 'dexie';
 
 db.version(1).stores({ chats: 'id' });
 const App: React.FC = () => {
