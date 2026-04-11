@@ -86,7 +86,10 @@ export const ChatEngine: React.FC<ChatEngineProps> = (props) => {
                     <div className="flex flex-col gap-1 mb-2">
                        <div className="flex items-center gap-3 p-3 bg-white/10 rounded-2xl border border-white/10">
                         <Mic size={18} className="text-white/60" />
-                        <span className="text-xs font-bold">Neural Voice Transmission</span>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold">Neural Voice Transmission</span>
+                          {!msg.attachments?.[0]?.url && <span className="text-[10px] text-white/40 font-medium uppercase tracking-wider">Transmitted to Uplink</span>}
+                        </div>
                       </div>
                       {msg.attachments?.[0]?.url && <AudioPlayer src={msg.attachments[0].url} />}
                     </div>
