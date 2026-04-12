@@ -51,15 +51,6 @@ export const useChatEngine = (
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     };
 
-    let audioUrl = '';
-    if (finalType === 'audio' && finalBlob) {
-      audioUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(finalBlob);
-      });
-    }
-
     const userMessage: Message = {
       role: 'user',
       content: finalType === 'audio' ? 'Voice Message' : finalType === 'file' ? (fileToUse?.name || String(messageContent)) : String(messageContent),
@@ -73,7 +64,6 @@ export const useChatEngine = (
       todoReminder: extra?.todoReminder,
       todoNotes: extra?.todoNotes,
       feedback: extra?.comment || extra?.feedback,
-      attachments: audioUrl ? [{ name: 'Voice Message', url: audioUrl, type: 'audio/webm' }] : undefined,
     };
 
     setChats(prev => prev.map(c => c.id === targetId ? { ...c, messages: [...c.messages, userMessage] } : c));
